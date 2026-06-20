@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "318604475357",
+    "project_id": "flashora-f6b47",
+    "storage_bucket": "flashora-f6b47.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318604475357:android:3ca3c4ed53a2853f239434",
+        "android_client_info": {
+          "package_name": "com.dsb.flashy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyJslOn0LolKH5YnyecIdhZmMAmYBAsUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318604475357:android:51665ba0247f33c8239434",
+        "android_client_info": {
+          "package_name": "com.dsb.flashy.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyJslOn0LolKH5YnyecIdhZmMAmYBAsUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
