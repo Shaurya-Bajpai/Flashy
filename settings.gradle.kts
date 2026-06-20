@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Flashy"
+rootProject.name = "Flashora"
 include(":app")
  
