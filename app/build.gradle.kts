@@ -5,22 +5,39 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flashy"
-    compileSdk = 35
+    namespace = "com.dsb.flashy"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.flashy"
+        applicationId = "com.dsb.flashy"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Flashy-Dev")
+        }
+
+        create("prod") {
+            dimension = "environment"
+            resValue("string", "app_name", "Flashy")
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,7 +58,7 @@ android {
 
 dependencies {
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
