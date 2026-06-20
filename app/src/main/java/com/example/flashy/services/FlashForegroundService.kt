@@ -1,4 +1,4 @@
-package com.example.flashy.services
+package com.dsb.flashy.services
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -13,24 +13,28 @@ import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.example.flashy.R
-import com.example.flashy.advance.getBatteryLevel
-import com.example.flashy.advance.isRingerModeAllowed
-import com.example.flashy.advance.isScreenOn
-import com.example.flashy.advance.isWithinDND
-import com.example.flashy.managers.FlashController
-import com.example.flashy.call.CallStateListener
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_CALL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_SMS
-import com.example.flashy.datastore.flashDataStore
+import com.dsb.flashy.R
+import com.dsb.flashy.advance.getBatteryLevel
+import com.dsb.flashy.advance.isRingerModeAllowed
+import com.dsb.flashy.advance.isScreenOn
+import com.dsb.flashy.advance.isWithinDND
+import com.dsb.flashy.managers.FlashController
+import com.dsb.flashy.call.CallStateListener
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
+import com.dsb.flashy.datastore.flashDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalTime
@@ -43,6 +47,7 @@ class FlashCallService : Service() {
 
     private lateinit var flashController: FlashController
     private lateinit var callListener: CallStateListener
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -62,7 +67,7 @@ class FlashCallService : Service() {
 
         if (eventType != "INIT" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Launch a coroutine to call the suspend function
-            GlobalScope.launch {
+            serviceScope.launch {
                 handleEvent(this@FlashCallService, eventType)
             }
         }
@@ -75,6 +80,7 @@ class FlashCallService : Service() {
     override fun onDestroy() {
         callListener.unregister()
         flashController.stopBlinking()
+        serviceScope.cancel()
         super.onDestroy()
     }
 
