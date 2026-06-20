@@ -1,4 +1,4 @@
-package com.example.flashy.ui.theme
+package com.dsb.flashy.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

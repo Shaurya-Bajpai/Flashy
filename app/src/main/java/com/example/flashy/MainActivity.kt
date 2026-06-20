@@ -1,4 +1,4 @@
-package com.example.flashy
+package com.dsb.flashy
 
 import android.Manifest
 import android.content.Context
@@ -23,12 +23,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.example.flashy.call.CallStateListener
-import com.example.flashy.managers.FlashController
-import com.example.flashy.notification.NotificationPermissionDialog
-import com.example.flashy.screen.FlashyIntroScreen
-import com.example.flashy.screen.dashboard.FlashDashboardScreen
-import com.example.flashy.services.FlashCallService
+import com.dsb.flashy.call.CallStateListener
+import com.dsb.flashy.managers.FlashController
+import com.dsb.flashy.notification.NotificationPermissionDialog
+import com.dsb.flashy.screen.FlashyIntroScreen
+import com.dsb.flashy.screen.dashboard.FlashDashboardScreen
+import com.dsb.flashy.services.FlashCallService
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {

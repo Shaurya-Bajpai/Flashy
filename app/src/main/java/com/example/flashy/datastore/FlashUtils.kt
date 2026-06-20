@@ -1,4 +1,4 @@
-package com.example.flashy.datastore
+package com.dsb.flashy.datastore
 
 import android.content.Context
 import android.hardware.camera2.CameraAccessException

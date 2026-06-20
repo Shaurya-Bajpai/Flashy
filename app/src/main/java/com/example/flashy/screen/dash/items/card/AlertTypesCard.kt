@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items.card
+package com.dsb.flashy.screen.dash.items.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -26,9 +26,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
-import com.example.flashy.screen.dash.items.SettingItem
-import com.example.flashy.screen.dash.items.GlowingDivider
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dash.items.SettingItem
+import com.dsb.flashy.screen.dash.items.GlowingDivider
 
 @Composable
 fun AlertTypesCard(

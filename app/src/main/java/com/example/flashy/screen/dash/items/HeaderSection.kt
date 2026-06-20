@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items
+package com.dsb.flashy.screen.dash.items
 
 import android.content.Context
 import android.hardware.camera2.CameraManager
@@ -48,8 +48,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
-import com.example.flashy.screen.dash.items.card.PremiumGlassCard
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dash.items.card.PremiumGlassCard
 import kotlinx.coroutines.launch
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.flashy
+package com.dsb.flashy
 
 import org.junit.Test
 

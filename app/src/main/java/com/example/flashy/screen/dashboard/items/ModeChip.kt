@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items
+package com.dsb.flashy.screen.dashboard.items
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween

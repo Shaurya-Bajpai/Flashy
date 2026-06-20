@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items.card
+package com.dsb.flashy.screen.dashboard.items.card
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,8 +19,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
-import com.example.flashy.screen.dashboard.items.TimeSelector
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dashboard.items.TimeSelector
 
 @Composable
 fun SmartScheduleCard(

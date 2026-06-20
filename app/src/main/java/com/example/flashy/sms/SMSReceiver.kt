@@ -1,11 +1,11 @@
-package com.example.flashy.sms
+package com.dsb.flashy.sms
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import com.example.flashy.services.FlashCallService
+import com.dsb.flashy.services.FlashCallService
 
 class SMSReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {

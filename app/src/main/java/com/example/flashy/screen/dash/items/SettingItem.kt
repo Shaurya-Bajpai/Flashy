@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items
+package com.dsb.flashy.screen.dash.items
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState

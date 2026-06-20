@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items.card
+package com.dsb.flashy.screen.dashboard.items.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items.card
+package com.dsb.flashy.screen.dash.items.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,8 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
-import com.example.flashy.screen.dash.items.ModeChip
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dash.items.ModeChip
 
 @Composable
 fun EnhancedRingerModeCard(selectedMode: String, onModeChange: (String) -> Unit) {

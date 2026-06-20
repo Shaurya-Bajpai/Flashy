@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items.card
+package com.dsb.flashy.screen.dash.items.card
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,8 +25,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
-import com.example.flashy.screen.dash.items.TimePickerButton
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dash.items.TimePickerButton
 
 @Composable
 fun DoNotDisturbCard(

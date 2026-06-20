@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items
+package com.dsb.flashy.screen.dash.items
 
 import android.app.TimePickerDialog
 import androidx.compose.animation.core.Spring
@@ -41,7 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.flashy.R
+import com.dsb.flashy.R
 import java.util.Calendar
 
 @Composable

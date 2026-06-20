@@ -1,4 +1,4 @@
-package com.example.flashy.screen.elite
+package com.dsb.flashy.screen.elite
 
 import android.app.TimePickerDialog
 import android.content.Context
@@ -29,20 +29,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import com.example.flashy.datastore.GlobalSettingsStore
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_CALL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_SMS
-import com.example.flashy.datastore.flashDataStore
+import com.dsb.flashy.datastore.GlobalSettingsStore
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
+import com.dsb.flashy.datastore.flashDataStore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.*
-import com.example.flashy.R
+import com.dsb.flashy.R
 
 @Composable
 fun FlashEliteBoardScreen(context: Context) {

@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items
+package com.dsb.flashy.screen.dash.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

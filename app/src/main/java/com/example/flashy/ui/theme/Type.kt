@@ -1,4 +1,4 @@
-package com.example.flashy.ui.theme
+package com.dsb.flashy.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

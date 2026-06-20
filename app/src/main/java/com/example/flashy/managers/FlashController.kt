@@ -1,4 +1,4 @@
-package com.example.flashy.managers
+package com.dsb.flashy.managers
 
 import android.content.Context
 import android.hardware.camera2.CameraCharacteristics

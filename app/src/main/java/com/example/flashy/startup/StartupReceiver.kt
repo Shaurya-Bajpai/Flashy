@@ -1,4 +1,4 @@
-package com.example.flashy.startup
+package com.dsb.flashy.startup
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -7,7 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
-import com.example.flashy.services.FlashCallService
+import com.dsb.flashy.services.FlashCallService
 
 class StartupReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {

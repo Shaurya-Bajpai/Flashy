@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dash.items.card
+package com.dsb.flashy.screen.dash.items.card
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
@@ -6,9 +6,9 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import com.example.flashy.R
-import com.example.flashy.screen.dash.items.SettingItem
-import com.example.flashy.screen.dash.items.GlowingDivider
+import com.dsb.flashy.R
+import com.dsb.flashy.screen.dash.items.SettingItem
+import com.dsb.flashy.screen.dash.items.GlowingDivider
 
 @Composable
 fun MainSettingsCard(

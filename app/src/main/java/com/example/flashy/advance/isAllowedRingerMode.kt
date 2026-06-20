@@ -1,4 +1,4 @@
-package com.example.flashy.advance
+package com.dsb.flashy.advance
 
 import android.content.Context
 import android.media.AudioManager

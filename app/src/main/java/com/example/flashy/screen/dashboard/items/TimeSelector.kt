@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items
+package com.dsb.flashy.screen.dashboard.items
 
 import android.app.TimePickerDialog
 import androidx.compose.foundation.clickable

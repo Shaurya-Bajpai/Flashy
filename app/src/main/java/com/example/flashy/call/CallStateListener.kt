@@ -1,4 +1,4 @@
-package com.example.flashy.call
+package com.dsb.flashy.call
 
 import android.content.Context
 import android.media.AudioManager
@@ -8,12 +8,12 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
-import com.example.flashy.managers.FlashController
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_CALL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
-import com.example.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
-import com.example.flashy.datastore.flashDataStore
+import com.dsb.flashy.managers.FlashController
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
+import com.dsb.flashy.datastore.flashDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first

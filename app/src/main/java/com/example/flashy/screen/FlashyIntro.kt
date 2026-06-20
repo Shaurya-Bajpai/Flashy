@@ -1,4 +1,4 @@
-package com.example.flashy.screen
+package com.dsb.flashy.screen
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.math.*
-import com.example.flashy.R
+import com.dsb.flashy.R
 
 @Composable
 fun FlashyIntroScreen(onComplete: () -> Unit) {
@@ -147,7 +147,7 @@ fun FlashyIntroScreen(onComplete: () -> Unit) {
                 ) + fadeIn(animationSpec = tween(600))
             ) {
                 Text(
-                    text = "FLASHY",
+                    text = "Flashy",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Black,
                     color = Color.White,

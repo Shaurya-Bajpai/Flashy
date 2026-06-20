@@ -1,4 +1,4 @@
-package com.example.flashy.screen
+package com.dsb.flashy.screen
 
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.animation.*
@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlin.math.*
 import kotlin.random.Random
-import com.example.flashy.R
+import com.dsb.flashy.R
 
 @Composable
 fun FlashyScreen(onComplete: () -> Unit) {

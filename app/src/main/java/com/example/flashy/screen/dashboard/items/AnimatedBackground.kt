@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items
+package com.dsb.flashy.screen.dashboard.items
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

@@ -1,4 +1,4 @@
-package com.example.flashy.notification
+package com.dsb.flashy.notification
 
 import android.content.Intent
 import android.provider.Settings
