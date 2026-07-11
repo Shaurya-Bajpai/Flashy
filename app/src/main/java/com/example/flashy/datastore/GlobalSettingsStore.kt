@@ -54,10 +54,13 @@ object GlobalSettingsStore {
     val FLASH_SOUND_REACTIVE    = booleanPreferencesKey("flash_sound_reactive")
     val FLASH_SOUND_SENSITIVITY = intPreferencesKey("flash_sound_sensitivity")    // 1–100
 
+    // Feature 7: flash when battery drops to the Battery Guard threshold (off by default)
+    val FLASH_LOW_BATTERY_ALERT = booleanPreferencesKey("flash_low_battery_alert")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
-                FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE -> false   // opt-in
+                FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE, FLASH_LOW_BATTERY_ALERT -> false   // opt-in
                 else -> true
             }
         }
