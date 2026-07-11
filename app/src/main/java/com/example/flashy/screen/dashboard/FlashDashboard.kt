@@ -6,6 +6,7 @@ import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -72,27 +73,32 @@ fun FlashDashboardScreen(context: Context) {
         }
     }
 
-    Box(modifier = Modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF1A1A2E),
-                        Color(0xFF16213E),
-                        Color(0xFF0F3460)
+                        Color(0xFF140A00),
+                        Color(0xFF0A0600),
+                        Color(0xFF060401)
                     ),
-                    radius = 1200f
+                    radius = 1600f
                 )
-            )) {
+            )
+    ) {
         AnimatedBackground()
 
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item { PremiumHeader(showPulse, flashGlobal) }
+
+            if (!flashGlobal) {
+                item { StatusAlert() }
+            }
 
             item {
                 MasterControlCard(
@@ -118,8 +124,12 @@ fun FlashDashboardScreen(context: Context) {
                 SmartScheduleCard(
                     startTime = flashDndStart,
                     endTime = flashDndEnd,
-                    onStartTimeChange = { scope.launch { context.flashDataStore.edit { it[FLASH_DND_START] = flashDndStart } } },
-                    onEndTimeChange = { scope.launch { context.flashDataStore.edit { it[FLASH_DND_END] = flashDndEnd } } }
+                    onStartTimeChange = { newTime ->
+                        scope.launch { context.flashDataStore.edit { it[FLASH_DND_START] = newTime } }
+                    },
+                    onEndTimeChange = { newTime ->
+                        scope.launch { context.flashDataStore.edit { it[FLASH_DND_END] = newTime } }
+                    }
                 )
             }
 
@@ -128,7 +138,9 @@ fun FlashDashboardScreen(context: Context) {
                     threshold = batterySlider / 100f,
                     onThresholdChange = { batterySlider = it * 100f },
                     onThresholdChangeFinished = {
-                        scope.launch { context.flashDataStore.edit { it[FLASH_BATTERY_THRESHOLD] = batterySlider.toInt() } }
+                        scope.launch {
+                            context.flashDataStore.edit { it[FLASH_BATTERY_THRESHOLD] = batterySlider.toInt() }
+                        }
                     }
                 )
             }
@@ -137,11 +149,7 @@ fun FlashDashboardScreen(context: Context) {
                 AdaptiveRingerCard(
                     selectedMode = ringerMode,
                     onModeChange = { mode ->
-                        scope.launch {
-                            context.flashDataStore.edit {
-                                it[FLASH_RINGER_MODE] = mode
-                            }
-                        }
+                        scope.launch { context.flashDataStore.edit { it[FLASH_RINGER_MODE] = mode } }
                     }
                 )
             }
@@ -150,10 +158,6 @@ fun FlashDashboardScreen(context: Context) {
                 QuickAccessCard {
                     context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 }
-            }
-
-            if (!flashGlobal) {
-                item { StatusAlert() }
             }
         }
     }

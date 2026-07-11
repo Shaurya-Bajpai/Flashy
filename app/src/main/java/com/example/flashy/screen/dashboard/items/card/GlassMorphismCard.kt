@@ -1,33 +1,64 @@
 package com.dsb.flashy.screen.dashboard.items.card
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.dsb.flashy.ui.theme.GlassBorderBot
+import com.dsb.flashy.ui.theme.GlassBorderTop
+import com.dsb.flashy.ui.theme.GlassSurface
+import com.dsb.flashy.ui.theme.GlassSurfaceMid
 
 @Composable
-fun GlassMorphismCard(content: @Composable () -> Unit) {
-    Card(
-        modifier = Modifier
+fun GlassMorphismCard(
+    modifier: Modifier = Modifier,
+    accentGlow: Color = Color.Transparent,
+    cornerRadius: Dp = 20.dp,
+    content: @Composable () -> Unit
+) {
+    val shape = RoundedCornerShape(cornerRadius)
+    Box(
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .then(
+                if (accentGlow != Color.Transparent) {
+                    Modifier.drawBehind {
+                        drawCircle(
+                            color = accentGlow.copy(alpha = 0.18f),
+                            radius = size.maxDimension * 0.55f,
+                            center = Offset(size.width / 2f, size.height / 2f)
+                        )
+                    }
+                } else Modifier
+            )
+            .clip(shape)
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.1f),
-                        Color.White.copy(alpha = 0.05f)
-                    )
+                brush = Brush.linearGradient(
+                    colors = listOf(GlassSurfaceMid, GlassSurface),
+                    start = Offset(0f, 0f),
+                    end = Offset(800f, 800f)
                 )
-            ),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(GlassBorderTop, GlassBorderBot),
+                    start = Offset(0f, 0f),
+                    end = Offset(800f, 800f)
+                ),
+                shape = shape
+            )
+            .then(modifier)
     ) {
         content()
     }

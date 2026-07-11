@@ -3,19 +3,26 @@ package com.dsb.flashy.screen.dashboard.items
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.dsb.flashy.R
 import com.dsb.flashy.screen.dashboard.items.card.AlertTypeCard
 import com.dsb.flashy.screen.dashboard.items.card.GlassMorphismCard
+import com.dsb.flashy.ui.theme.ColorApp
+import com.dsb.flashy.ui.theme.ColorCall
+import com.dsb.flashy.ui.theme.ColorSms
+import com.dsb.flashy.ui.theme.TextMuted
+import com.dsb.flashy.ui.theme.TextWarm
 
 @Composable
 fun AlertGrid(
@@ -27,42 +34,48 @@ fun AlertGrid(
     onFlashNotifyChange: (Boolean) -> Unit
 ) {
     GlassMorphismCard {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
-                text = "Alert Types",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 20.dp)
+                text = "Alert Triggers",
+                style = MaterialTheme.typography.titleLarge,
+                color = TextWarm
             )
+            Spacer(Modifier.height(3.dp))
+            Text(
+                text = "Choose what activates your flash",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted
+            )
+            Spacer(Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 AlertTypeCard(
                     icon = Icons.Default.Phone,
                     label = "Calls",
                     isEnabled = flashCall,
                     onToggle = onFlashCallChange,
-                    color = Color(0xFF4CAF50),
+                    color = ColorCall,
                     modifier = Modifier.weight(1f)
                 )
-
                 AlertTypeCard(
+                    painter = painterResource(R.drawable.baseline_sms_24),
                     pain = true,
                     label = "SMS",
                     isEnabled = flashSms,
                     onToggle = onFlashSmsChange,
-                    color = Color(0xFF9C27B0),
+                    color = ColorSms,
                     modifier = Modifier.weight(1f)
                 )
-
                 AlertTypeCard(
+                    painter = painterResource(R.drawable.baseline_notifications_active_24),
+                    pain = true,
                     label = "Apps",
                     isEnabled = flashNotify,
                     onToggle = onFlashNotifyChange,
-                    color = Color(0xFFFF5722),
+                    color = ColorApp,
                     modifier = Modifier.weight(1f)
                 )
             }

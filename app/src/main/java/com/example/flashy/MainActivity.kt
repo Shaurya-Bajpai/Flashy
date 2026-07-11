@@ -11,7 +11,6 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +28,7 @@ import com.dsb.flashy.notification.NotificationPermissionDialog
 import com.dsb.flashy.screen.FlashyIntroScreen
 import com.dsb.flashy.screen.dashboard.FlashDashboardScreen
 import com.dsb.flashy.services.FlashCallService
+import com.dsb.flashy.ui.theme.FlashyTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -96,7 +96,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            MaterialTheme {
+            FlashyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (notificationPermissionGranted) {
                         FlashyIntroScreen(
