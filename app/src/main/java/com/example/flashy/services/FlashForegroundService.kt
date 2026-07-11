@@ -37,6 +37,8 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_REACTIVE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_SENSITIVITY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
@@ -46,7 +48,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import kotlin.text.get
@@ -98,6 +102,19 @@ class FlashCallService : Service() {
         callListener.register()
 
         registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+
+        // Reactively start/stop sound reactive flash whenever the setting changes.
+        serviceScope.launch {
+            flashDataStore.data
+                .map { prefs ->
+                    (prefs[FLASH_SOUND_REACTIVE] ?: false) to (prefs[FLASH_SOUND_SENSITIVITY] ?: 50)
+                }
+                .distinctUntilChanged()
+                .collect { (enabled, sensitivity) ->
+                    if (enabled) flashController.startSoundReactive(sensitivity)
+                    else flashController.stopSoundReactive()
+                }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
