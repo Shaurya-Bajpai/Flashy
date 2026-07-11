@@ -66,11 +66,15 @@ object GlobalSettingsStore {
     // Onboarding — false until the user completes the first-launch walkthrough
     val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
 
+    // In-app review — counts dashboard visits; prompts once on the 5th
+    val APP_LAUNCH_COUNT = intPreferencesKey("app_launch_count")
+    val REVIEW_PROMPTED  = booleanPreferencesKey("review_prompted")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
                 FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE, FLASH_LOW_BATTERY_ALERT,
-            ONBOARDING_COMPLETE -> false   // opt-in / first-launch gates
+                ONBOARDING_COMPLETE, REVIEW_PROMPTED -> false   // opt-in / first-launch gates
                 else -> true
             }
         }

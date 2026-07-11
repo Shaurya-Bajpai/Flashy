@@ -23,10 +23,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.edit
+import com.dsb.flashy.datastore.GlobalSettingsStore.APP_LAUNCH_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.ONBOARDING_COMPLETE
+import com.dsb.flashy.datastore.GlobalSettingsStore.REVIEW_PROMPTED
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.util.updateFlashShortcut
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.review.testing.FakeReviewManager
 import com.dsb.flashy.screen.FlashyIntroScreen
 import com.dsb.flashy.screen.dashboard.FlashDashboardScreen
 import com.dsb.flashy.screen.onboarding.OnboardingScreen
@@ -63,6 +68,24 @@ class MainActivity : ComponentActivity() {
                 // always reflects the current flash state.
                 updateFlashShortcut(context, flashEnabled)
                 screen = if (onboardingDone) AppScreen.INTRO else AppScreen.ONBOARDING
+            }
+
+            // Counts each time the user reaches the dashboard (= one "use").
+            // On the 5th use, triggers the Play Store in-app review prompt once.
+            LaunchedEffect(screen) {
+                if (screen != AppScreen.DASHBOARD) return@LaunchedEffect
+                val prefs      = context.flashDataStore.data.first()
+                val count      = (prefs[APP_LAUNCH_COUNT] ?: 0) + 1
+                val prompted   = prefs[REVIEW_PROMPTED]   ?: false
+                context.flashDataStore.edit { it[APP_LAUNCH_COUNT] = count }
+                if (count >= 5 && !prompted) {
+                    context.flashDataStore.edit { it[REVIEW_PROMPTED] = true }
+                    val mgr = if (BuildConfig.DEBUG) FakeReviewManager(context)
+                              else ReviewManagerFactory.create(context)
+                    mgr.requestReviewFlow().addOnCompleteListener { task ->
+                        if (task.isSuccessful) mgr.launchReviewFlow(this@MainActivity, task.result)
+                    }
+                }
             }
 
             // Single FlashyTheme wrapper — all screens share the same theme context.

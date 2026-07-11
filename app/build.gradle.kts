@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
 
     implementation(libs.androidx.datastore.preferences)
+    implementation("com.google.android.play:review-ktx:2.0.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
