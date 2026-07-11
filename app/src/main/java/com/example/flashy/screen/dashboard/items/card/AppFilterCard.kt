@@ -72,6 +72,8 @@ import com.dsb.flashy.ui.theme.TextWarm
 
 private data class InstalledApp(val packageName: String, val name: String)
 
+private val BlockRed = Color(0xFFEF4444)
+
 @Composable
 fun AppFilterCard(
     context: Context,
@@ -192,6 +194,7 @@ private fun AppRuleRow(
     val keyboard    = LocalSoftwareKeyboardController.current
     var inputText   by remember { mutableStateOf("") }
     val isSelected  = rule.filterMode == "selected"
+    val isBlocked   = rule.filterMode == "blocked"
     val contactList = remember(rule.contacts) {
         rule.contacts.split(",").map { it.trim() }.filter { it.isNotEmpty() }
     }
@@ -216,8 +219,9 @@ private fun AppRuleRow(
                 modifier = Modifier.weight(1f)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AppModeChip(text = "All",      selected = !isSelected) { onUpdate(rule.copy(filterMode = "all")) }
-                AppModeChip(text = "Selected", selected =  isSelected) { onUpdate(rule.copy(filterMode = "selected")) }
+                AppModeChip(text = "All",      selected = rule.filterMode == "all")      { onUpdate(rule.copy(filterMode = "all")) }
+                AppModeChip(text = "Selected", selected = isSelected)                     { onUpdate(rule.copy(filterMode = "selected")) }
+                AppModeChip(text = "Block",    selected = isBlocked, accentColor = BlockRed) { onUpdate(rule.copy(filterMode = "blocked")) }
             }
             Spacer(Modifier.width(8.dp))
             Box(
@@ -237,38 +241,47 @@ private fun AppRuleRow(
             }
         }
 
-        // Speed row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
+        if (isBlocked) {
+            // Blocked indicator — no speed/count or contact rows needed
             Text(
-                text = "SPEED",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextDim,
-                modifier = Modifier.width(44.dp)
+                text = "Flash is blocked for ${rule.appName}",
+                style = MaterialTheme.typography.bodySmall,
+                color = BlockRed.copy(alpha = 0.80f)
             )
-            AppPatternChip("Rapid",  rule.flashSpeedMs == 100) { onUpdate(rule.copy(flashSpeedMs = 100)) }
-            AppPatternChip("Normal", rule.flashSpeedMs == 200) { onUpdate(rule.copy(flashSpeedMs = 200)) }
-            AppPatternChip("Gentle", rule.flashSpeedMs == 400) { onUpdate(rule.copy(flashSpeedMs = 400)) }
-        }
+        } else {
+            // Speed row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "SPEED",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextDim,
+                    modifier = Modifier.width(44.dp)
+                )
+                AppPatternChip("Rapid",  rule.flashSpeedMs == 100) { onUpdate(rule.copy(flashSpeedMs = 100)) }
+                AppPatternChip("Normal", rule.flashSpeedMs == 200) { onUpdate(rule.copy(flashSpeedMs = 200)) }
+                AppPatternChip("Gentle", rule.flashSpeedMs == 400) { onUpdate(rule.copy(flashSpeedMs = 400)) }
+            }
 
-        // Count row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = "COUNT",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextDim,
-                modifier = Modifier.width(44.dp)
-            )
-            AppPatternChip("3×",  rule.flashCount == 3)  { onUpdate(rule.copy(flashCount = 3))  }
-            AppPatternChip("5×",  rule.flashCount == 5)  { onUpdate(rule.copy(flashCount = 5))  }
-            AppPatternChip("10×", rule.flashCount == 10) { onUpdate(rule.copy(flashCount = 10)) }
+            // Count row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = "COUNT",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextDim,
+                    modifier = Modifier.width(44.dp)
+                )
+                AppPatternChip("3×",  rule.flashCount == 3)  { onUpdate(rule.copy(flashCount = 3))  }
+                AppPatternChip("5×",  rule.flashCount == 5)  { onUpdate(rule.copy(flashCount = 5))  }
+                AppPatternChip("10×", rule.flashCount == 10) { onUpdate(rule.copy(flashCount = 10)) }
+            }
         }
 
         AnimatedVisibility(
@@ -484,10 +497,10 @@ private fun AppIconView(context: Context, packageName: String, sizeDp: Int) {
 }
 
 @Composable
-private fun AppModeChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val bg       by animateColorAsState(if (selected) Amber.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f), label = "amc_bg_$text")
-    val border   by animateColorAsState(if (selected) Amber.copy(alpha = 0.60f) else Color.White.copy(alpha = 0.10f), label = "amc_border_$text")
-    val textColor by animateColorAsState(if (selected) Amber else TextDim, label = "amc_text_$text")
+private fun AppModeChip(text: String, selected: Boolean, accentColor: Color = Amber, onClick: () -> Unit) {
+    val bg       by animateColorAsState(if (selected) accentColor.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f), label = "amc_bg_$text")
+    val border   by animateColorAsState(if (selected) accentColor.copy(alpha = 0.60f) else Color.White.copy(alpha = 0.10f), label = "amc_border_$text")
+    val textColor by animateColorAsState(if (selected) accentColor else TextDim, label = "amc_text_$text")
     val shape = RoundedCornerShape(8.dp)
     Text(
         text = text,

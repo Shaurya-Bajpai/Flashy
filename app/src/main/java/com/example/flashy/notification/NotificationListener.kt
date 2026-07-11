@@ -83,6 +83,10 @@ class NotificationListener : NotificationListenerService() {
                     val appRule  = appRules.find { it.packageName == pkg }
 
                     if (appRule != null) {
+                        if (appRule.filterMode == "blocked") {
+                            Log.d("FlashNotif", "[$pkg] blocked by per-app rule — skipped")
+                            return@launch
+                        }
                         if (appRule.filterMode == "selected") {
                             if (!isAllowed(senderName, appRule.contacts)) {
                                 Log.d("FlashNotif", "[$pkg] \"$senderName\" not in per-app whitelist — skipped")
