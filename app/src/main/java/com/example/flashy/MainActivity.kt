@@ -23,15 +23,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.ONBOARDING_COMPLETE
 import com.dsb.flashy.datastore.flashDataStore
+import com.dsb.flashy.util.updateFlashShortcut
 import com.dsb.flashy.screen.FlashyIntroScreen
 import com.dsb.flashy.screen.dashboard.FlashDashboardScreen
 import com.dsb.flashy.screen.onboarding.OnboardingScreen
 import com.dsb.flashy.services.FlashCallService
 import com.dsb.flashy.ui.theme.FlashyTheme
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 
 private enum class AppScreen { LOADING, ONBOARDING, INTRO, DASHBOARD }
 
@@ -55,9 +56,12 @@ class MainActivity : ComponentActivity() {
             var screen by remember { mutableStateOf(AppScreen.LOADING) }
 
             LaunchedEffect(Unit) {
-                val onboardingDone = context.flashDataStore.data
-                    .map { prefs -> prefs[ONBOARDING_COMPLETE] ?: false }
-                    .first()
+                val prefs = context.flashDataStore.data.first()
+                val onboardingDone = prefs[ONBOARDING_COMPLETE] ?: false
+                val flashEnabled   = prefs[FLASH_GLOBAL]        ?: true
+                // Register/sync the long-press shortcut on every launch so its label
+                // always reflects the current flash state.
+                updateFlashShortcut(context, flashEnabled)
                 screen = if (onboardingDone) AppScreen.INTRO else AppScreen.ONBOARDING
             }
 

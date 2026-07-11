@@ -55,6 +55,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Transparent activity launched by the long-press shortcut.
+             noHistory + excludeFromRecents keeps it invisible to the user. -->
+        <activity
+            android:name=".FlashToggleActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Flashy.Transparent"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
+
         <!-- Add the Notification Service -->
         <service
             android:name=".notification.NotificationListener"
