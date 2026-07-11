@@ -10,12 +10,17 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -82,8 +87,12 @@ import com.dsb.flashy.screen.dashboard.items.card.IntelligentBatteryCard
 import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
 import com.dsb.flashy.screen.dashboard.items.card.QuickAccessCard
 import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
+import com.dsb.flashy.ui.theme.TextDim
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// ── Replace with your hosted privacy policy URL before submitting to Play Store ──
+private const val PRIVACY_POLICY_URL = "https://yoursite.com/privacy-policy"
 
 @Composable
 fun FlashDashboardScreen(context: Context) {
@@ -370,6 +379,26 @@ fun FlashDashboardScreen(context: Context) {
             item {
                 QuickAccessCard {
                     context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                }
+            }
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextDim,
+                        modifier = Modifier.clickable {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))
+                            )
+                        }
+                    )
                 }
             }
         }

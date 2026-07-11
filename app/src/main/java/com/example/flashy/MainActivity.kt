@@ -13,11 +13,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -33,13 +33,13 @@ import com.dsb.flashy.ui.theme.FlashyTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
+private enum class AppScreen { LOADING, ONBOARDING, INTRO, DASHBOARD }
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Request runtime permissions needed to start the service.
-        // READ_PHONE_STATE is handled progressively inside the onboarding and dashboard.
         val runtimePermissions = buildList {
             add(Manifest.permission.CAMERA)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -48,48 +48,40 @@ class MainActivity : ComponentActivity() {
         }.toTypedArray()
         ActivityCompat.requestPermissions(this, runtimePermissions, 101)
 
-        // Start the foreground service after the permission dialog has had a moment to be acted on.
         Handler(Looper.getMainLooper()).postDelayed({ startFlashService() }, 1500)
 
         setContent {
             val context = LocalContext.current
-
-            // Three-state: null = still reading DataStore (single frame), then true/false
-            var onboardingDone by remember { mutableStateOf<Boolean?>(null) }
+            var screen by remember { mutableStateOf(AppScreen.LOADING) }
 
             LaunchedEffect(Unit) {
-                onboardingDone = context.flashDataStore.data
+                val onboardingDone = context.flashDataStore.data
                     .map { prefs -> prefs[ONBOARDING_COMPLETE] ?: false }
                     .first()
+                screen = if (onboardingDone) AppScreen.INTRO else AppScreen.ONBOARDING
             }
 
+            // Single FlashyTheme wrapper — all screens share the same theme context.
             FlashyTheme {
-                when (onboardingDone) {
-                    null -> {
-                        // DataStore read in progress — show a plain dark frame (one frame only)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF060401))
-                        )
-                    }
+                when (screen) {
+                    AppScreen.LOADING -> Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF060401))
+                    )
 
-                    false -> {
-                        OnboardingScreen(
-                            context = context,
-                            onComplete = { onboardingDone = true }
-                        )
-                    }
+                    AppScreen.ONBOARDING -> OnboardingScreen(
+                        context = context,
+                        onComplete = { screen = AppScreen.INTRO }
+                    )
 
-                    true -> {
-                        FlashyIntroScreen(
-                            onComplete = {
-                                setContent {
-                                    FlashDashboardScreen(context = this@MainActivity)
-                                }
-                            }
-                        )
-                    }
+                    AppScreen.INTRO -> FlashyIntroScreen(
+                        onComplete = { screen = AppScreen.DASHBOARD }
+                    )
+
+                    AppScreen.DASHBOARD -> FlashDashboardScreen(
+                        context = context
+                    )
                 }
             }
         }
