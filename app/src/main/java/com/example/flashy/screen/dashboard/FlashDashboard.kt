@@ -90,6 +90,8 @@ import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
 import com.dsb.flashy.screen.dashboard.items.card.QuickAccessCard
 import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
 import com.dsb.flashy.ui.theme.TextDim
+import com.dsb.flashy.util.updateFlashShortcut
+import com.dsb.flashy.widget.FlashToggleWidget
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -233,7 +235,13 @@ fun FlashDashboardScreen(context: Context) {
                 MasterControlCard(
                     flashGlobal = flashGlobal,
                     flashScreenOffOnly = flashScreenOffOnly,
-                    onFlashGlobalChange = { scope.launch { GlobalSettingsStore.set(context, FLASH_GLOBAL, it) } },
+                    onFlashGlobalChange = { v ->
+                        scope.launch {
+                            GlobalSettingsStore.set(context, FLASH_GLOBAL, v)
+                            updateFlashShortcut(context, v)
+                            FlashToggleWidget.refreshAll(context, v)
+                        }
+                    },
                     onFlashScreenOffOnlyChange = { scope.launch { GlobalSettingsStore.set(context, FLASH_SCREEN_OFF_ONLY, it) } }
                 )
             }
