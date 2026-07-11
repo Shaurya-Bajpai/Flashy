@@ -1,5 +1,6 @@
 package com.dsb.flashy.services
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,6 +9,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Handler
@@ -143,7 +146,22 @@ class FlashCallService : Service() {
         val eventType = intent?.getStringExtra("eventType") ?: "INIT"
 
         val notification = createNotification()
-        startForeground(NOTIFICATION_ID, notification)
+        // On targetSdk 36 the 2-arg startForeground() activates ALL types declared in the
+        // manifest, including microphone — which crashes if RECORD_AUDIO isn't granted yet.
+        // Use the 3-arg form and only add the microphone type when the permission is held.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            var fgType = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            ) {
+                @Suppress("InlinedApi")
+                fgType = fgType or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            }
+            startForeground(NOTIFICATION_ID, notification, fgType)
+        } else {
+            @Suppress("DEPRECATION")
+            startForeground(NOTIFICATION_ID, notification)
+        }
 
         val countOverride  = intent?.getIntExtra("flashCountOverride", -1) ?: -1
         val speedOverride  = intent?.getIntExtra("flashSpeedOverride", -1) ?: -1
