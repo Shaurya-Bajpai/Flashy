@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — Flashy</title>
+  <style>
+    :root {
+      --bg: #0c0701;
+      --surface: #1a0f02;
+      --surface-2: #221404;
+      --border: #2e1f05;
+      --amber: #ffb300;
+      --amber-dim: #cc8f00;
+      --green: #34d399;
+      --red: #f87171;
+      --text: #fff8e7;
+      --text-muted: rgba(255,248,231,0.65);
+      --text-dim: rgba(255,248,231,0.38);
+      --radius: 12px;
+      --max-width: 760px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: var(--max-width); margin: 0 auto; }
+
+    /* ── Header ── */
+    header { text-align: center; margin-bottom: 48px; }
+    .logo {
+      display: inline-block;
+      background: linear-gradient(135deg, #1a0f02, #2e1a04);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 14px 28px;
+      margin-bottom: 24px;
+    }
+    .logo-text {
+      font-size: 28px; font-weight: 900; letter-spacing: 6px;
+      background: linear-gradient(90deg, var(--amber), #ff6b35, var(--amber));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    header h1 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    header p { font-size: 14px; color: var(--text-dim); }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      font-size: 13px; font-weight: 700; color: var(--amber);
+      letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .card p { color: var(--text-muted); margin-bottom: 12px; font-size: 15px; }
+    .card p:last-child { margin-bottom: 0; }
+
+    /* ── Summary box ── */
+    .summary-box {
+      background: rgba(255,179,0,0.06);
+      border: 1px solid rgba(255,179,0,0.20);
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: var(--text-muted);
+    }
+    .summary-box strong { color: var(--amber); }
+
+    /* ── Permission rows ── */
+    .perm-list { display: flex; flex-direction: column; gap: 12px; }
+    .perm-row {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+    .perm-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+    }
+    .perm-name {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 13px; font-weight: 600; color: var(--amber);
+      background: rgba(255,179,0,0.08);
+      border: 1px solid rgba(255,179,0,0.18);
+      border-radius: 6px; padding: 2px 8px;
+    }
+    .badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+      border-radius: 20px; padding: 2px 9px; white-space: nowrap;
+    }
+    .badge-required { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+    .badge-optional { background: rgba(52,211,153,0.10); color: var(--green); border: 1px solid rgba(52,211,153,0.22); }
+    .badge-auto { background: rgba(255,179,0,0.10); color: var(--amber); border: 1px solid rgba(255,179,0,0.22); }
+    .perm-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .perm-note { font-size: 13px; color: var(--text-dim); margin-top: 5px; }
+
+    /* ── Do/Don't table ── */
+    .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 560px) { .do-dont { grid-template-columns: 1fr; } }
+    .do-col, .dont-col { border-radius: 10px; padding: 16px 18px; }
+    .do-col { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.18); }
+    .dont-col { background: rgba(248,113,113,0.05); border: 1px solid rgba(248,113,113,0.18); }
+    .do-col h3 { color: var(--green); font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px; }
+    .dont-col h3 { color: var(--red); font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px; }
+    .do-col ul, .dont-col ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+    .do-col li, .dont-col li { font-size: 14px; color: var(--text-muted); padding-left: 18px; position: relative; }
+    .do-col li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+    .dont-col li::before { content: "✕"; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+
+    /* ── Data table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+    .data-table th {
+      text-align: left; padding: 10px 14px; font-size: 12px; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--text-dim);
+      border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+    }
+    .data-table td {
+      padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-muted); vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .tag {
+      display: inline-block; font-size: 11px; border-radius: 5px; padding: 2px 7px;
+      font-weight: 600; white-space: nowrap;
+    }
+    .tag-local { background: rgba(52,211,153,0.10); color: var(--green); }
+    .tag-third { background: rgba(255,179,0,0.10); color: var(--amber); }
+    .tag-none { background: rgba(255,255,255,0.06); color: var(--text-dim); }
+
+    a { color: var(--amber); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer { text-align: center; margin-top: 48px; color: var(--text-dim); font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="logo"><span class="logo-text">FLASHY</span></div>
+    <h1>Privacy Policy</h1>
+    <p>Effective date: July 12, 2026 &nbsp;·&nbsp; Last updated: July 12, 2026</p>
+  </header>
+
+  <!-- ── 1. Overview ── -->
+  <div class="card">
+    <h2>1. Overview</h2>
+    <div class="summary-box">
+      <strong>Plain-language summary:</strong> Flashy blinks your camera flash for calls,
+      messages, and app notifications. It reads notification titles and phone call state
+      on-device only — this data never leaves your phone. The only external data sharing
+      is anonymous crash and usage statistics sent to Google Firebase, which you can opt
+      out of in your Google account settings.
+    </div>
+    <p>
+      This Privacy Policy explains what information the Flashy application accesses,
+      how it is used, and your rights. By installing or using Flashy, you agree to the
+      terms described here.
+    </p>
+    <p>
+      Flashy is developed by <strong>Nickelfox Technologies Pvt. Ltd.</strong>
+      If you have questions, contact us at
+      <a href="mailto:aanchal.negi@nickelfox.com">aanchal.negi@nickelfox.com</a>.
+    </p>
+  </div>
+
+  <!-- ── 2. What We Do and Don't Do ── -->
+  <div class="card">
+    <h2>2. What We Do and Don't Do With Your Data</h2>
+    <div class="do-dont">
+      <div class="do-col">
+        <h3>We Do</h3>
+        <ul>
+          <li>Read notification titles to detect who sent a message</li>
+          <li>Detect when your phone is ringing</li>
+          <li>Store your app settings locally on your device</li>
+          <li>Keep a local flash history log (last 30 events)</li>
+          <li>Sample microphone volume in real time (opt-in only)</li>
+          <li>Send anonymous crash reports to Firebase Crashlytics</li>
+          <li>Send anonymous usage statistics to Firebase Analytics</li>
+        </ul>
+      </div>
+      <div class="dont-col">
+        <h3>We Don't</h3>
+        <ul>
+          <li>Record, store, or upload audio from your microphone</li>
+          <li>Read the content of your messages or notifications</li>
+          <li>Access your contacts, call logs, or phone numbers</li>
+          <li>Upload notification titles or sender names to any server</li>
+          <li>Track your location at any time</li>
+          <li>Sell, rent, or share personal data with third parties</li>
+          <li>Show ads or use data for targeted advertising</li>
+          <li>Create user accounts or require registration</li>
+          <li>Sync your settings to the cloud</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Permissions ── -->
+  <div class="card">
+    <h2>3. Permissions Explained</h2>
+    <p>Below is every Android permission Flashy requests, why it is needed, and how the data is used.</p>
+    <br/>
+    <div class="perm-list">
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">CAMERA</span>
+          <span class="badge badge-required">Required</span>
+        </div>
+        <div class="perm-desc">Controls the rear flash LED (torch mode). Flashy never opens the camera, captures photos, or records video. It only calls <code>CameraManager.setTorchMode()</code> to turn the flash on or off.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">BIND_NOTIFICATION_LISTENER_SERVICE</span>
+          <span class="badge badge-required">Required</span>
+        </div>
+        <div class="perm-desc">Allows Flashy to receive notification events so it can trigger a flash when a message or app notification arrives. Flashy reads only the notification <strong>title</strong> (sender's display name or app name) — it does not read the notification body, message content, images, or any other data.</div>
+        <div class="perm-note">This permission requires explicit user approval in Android Settings → Notification Access. It cannot be granted automatically.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">READ_PHONE_STATE</span>
+          <span class="badge badge-required">Required for call flash</span>
+        </div>
+        <div class="perm-desc">Detects when the phone transitions to the RINGING state so the flash can blink before a call is answered. Flashy does not read phone numbers, IMEI, subscriber ID, or any other device identifier. It only observes the call state (idle, ringing, off-hook).</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">RECORD_AUDIO</span>
+          <span class="badge badge-optional">Optional — Sound Reactive mode only</span>
+        </div>
+        <div class="perm-desc">Only requested if you enable <strong>Sound Reactive Flash</strong> in Settings. When active, Flashy samples the microphone approximately every 100ms to measure the ambient sound level (RMS amplitude). The raw audio buffer is discarded immediately after the amplitude is calculated — it is never written to storage or transmitted. When you disable Sound Reactive Flash, microphone sampling stops immediately.</div>
+        <div class="perm-note">You will see a full disclosure dialog before this permission is requested. You can deny it; the flash alert features work without it.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">FOREGROUND_SERVICE</span>
+          <span class="badge badge-auto">Auto — System</span>
+        </div>
+        <div class="perm-desc">Required to run the flash alert service in the foreground (with a visible notification). This ensures the service is not killed when the screen turns off. The persistent notification reads "Flash Alerts Active" and is kept at low importance so it does not interrupt you.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">FOREGROUND_SERVICE_CAMERA</span>
+          <span class="badge badge-auto">Auto — System</span>
+        </div>
+        <div class="perm-desc">Required on Android 10+ when a foreground service accesses the camera hardware (flash LED). Declared so Android knows this service uses camera, not for photography — just torch mode.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">FOREGROUND_SERVICE_MICROPHONE</span>
+          <span class="badge badge-optional">Conditional — Sound Reactive only</span>
+        </div>
+        <div class="perm-desc">Required on Android 12+ when a foreground service accesses the microphone. Flashy's service only activates this type at runtime when both Sound Reactive Flash is enabled AND the RECORD_AUDIO permission is granted. It is never activated otherwise.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">POST_NOTIFICATIONS</span>
+          <span class="badge badge-required">Required on Android 13+</span>
+        </div>
+        <div class="perm-desc">Required by Android 13 (API 33) and above to display the foreground service notification ("Flash Alerts Active"). Without this, the service cannot run reliably in the foreground on Android 13+ devices.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">RECEIVE_BOOT_COMPLETED</span>
+          <span class="badge badge-auto">Auto — System</span>
+        </div>
+        <div class="perm-desc">Allows Flashy to restart the flash alert service automatically after the device reboots. Without this, flash alerts would stop working every time the phone is restarted until the user manually opens the app.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">WAKE_LOCK</span>
+          <span class="badge badge-auto">Auto — System</span>
+        </div>
+        <div class="perm-desc">Keeps the CPU briefly active while a flash sequence is running to ensure the LED blinks the correct number of times. Without this, budget devices from Xiaomi, Oppo, Realme, and Samsung may cut the flash sequence short when the screen is off. Wake locks are released immediately after each flash sequence ends.</div>
+      </div>
+
+      <div class="perm-row">
+        <div class="perm-header">
+          <span class="perm-name">REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</span>
+          <span class="badge badge-optional">Optional — Prompted during setup</span>
+        </div>
+        <div class="perm-desc">Requests exemption from Android's battery optimization (Doze mode) so the flash alert service is not suspended when the phone is idle. Without this, the flash may fail on aggressive power-saving OEM builds (Xiaomi MIUI, Oppo ColorOS, Realme UI, Samsung One UI). The user is prompted during onboarding and can decline; the app functions without it on stock Android.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 4. Data We Collect ── -->
+  <div class="card">
+    <h2>4. Data Collected and Stored</h2>
+    <p>The table below lists every type of data Flashy handles and where it is stored.</p>
+    <br/>
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data Type</th>
+          <th>What It Is</th>
+          <th>Where Stored</th>
+          <th>Transmitted?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>App settings</strong></td>
+          <td>Which alerts are on, schedules, DND times, ringer mode, battery threshold</td>
+          <td><span class="tag tag-local">On-device only</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Contact filter lists</strong></td>
+          <td>Display names you add to flash-only-for-these-contacts lists (e.g. "Mom", "John")</td>
+          <td><span class="tag tag-local">On-device only</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Per-app flash rules</strong></td>
+          <td>Custom flash settings per app (e.g. WhatsApp: 3 blinks, fast)</td>
+          <td><span class="tag tag-local">On-device only</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Flash history log</strong></td>
+          <td>Last 30 flash events: event type (Call/SMS/App), notification title (sender name), app name, timestamp. Capped at 30 entries; you can clear it at any time.</td>
+          <td><span class="tag tag-local">On-device only</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Notification titles</strong></td>
+          <td>The title field of incoming notifications (typically the sender's name). Read in real time to check contact filters and saved to flash history. Message body is never read.</td>
+          <td><span class="tag tag-local">On-device only</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Audio amplitude</strong></td>
+          <td>Real-time RMS value calculated from microphone buffer. Used only to decide whether to blink the flash. Never stored.</td>
+          <td><span class="tag tag-none">Not stored</span></td>
+          <td>Never</td>
+        </tr>
+        <tr>
+          <td><strong>Crash reports</strong></td>
+          <td>Stack traces, device model, Android version, and app state at the time of a crash. Does not include message content, sender names, or audio.</td>
+          <td><span class="tag tag-third">Firebase / Google</span></td>
+          <td>Sent to Google on crash</td>
+        </tr>
+        <tr>
+          <td><strong>Usage analytics</strong></td>
+          <td>Anonymous events: app opens, feature usage (which toggles are on), session length. No personal identifiers, no notification content.</td>
+          <td><span class="tag tag-third">Firebase / Google</span></td>
+          <td>Sent to Google periodically</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ── 5. Notification Listener Details ── -->
+  <div class="card">
+    <h2>5. Notification Listener — How It Works</h2>
+    <p>
+      Flashy uses Android's <code>NotificationListenerService</code> API to receive notification
+      events. This is a sensitive Android API that requires explicit user approval in
+      <strong>Settings → Notification Access</strong>.
+    </p>
+    <p>
+      When a notification arrives, Flashy reads only the <strong>title field</strong>
+      (<code>Notification.EXTRA_TITLE</code>) — this is the sender's name as shown at the
+      top of the notification, for example "Mom" or "WhatsApp". It does not read:
+    </p>
+    <ul style="color:var(--text-muted);font-size:15px;padding-left:20px;margin-bottom:12px;">
+      <li>The message body or text content</li>
+      <li>Notification images or rich media</li>
+      <li>Reply-to or contact phone numbers</li>
+      <li>Conversation history</li>
+      <li>Any data from ongoing (persistent) notifications</li>
+    </ul>
+    <p>
+      The title is used for two purposes only: (1) checking whether the sender matches a
+      contact filter you configured, and (2) adding an entry to the local flash history log.
+      The title is never uploaded, shared, or stored outside the device.
+    </p>
+  </div>
+
+  <!-- ── 6. Firebase / Third-Party ── -->
+  <div class="card">
+    <h2>6. Third-Party Services — Firebase</h2>
+    <p>Flashy uses two Firebase services operated by Google LLC:</p>
+    <p>
+      <strong>Firebase Crashlytics</strong> — Automatically collects crash reports to help us
+      identify and fix bugs. A report includes the exception type, stack trace, device model,
+      Android OS version, and app version. It does not include notification content, audio
+      data, contact names from your filters, or any message text.
+    </p>
+    <p>
+      <strong>Firebase Analytics</strong> — Collects anonymous usage data: app open/close
+      events, which flash features are enabled, general device category (phone/tablet), and
+      country/region (coarse). It does not collect precise location, notification content,
+      or personally identifiable information.
+    </p>
+    <p>
+      Both services are governed by Google's Privacy Policy:
+      <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a>.
+      You can opt out of Analytics personalization through your Google account settings at
+      <a href="https://myaccount.google.com/data-and-privacy" target="_blank">myaccount.google.com</a>.
+    </p>
+  </div>
+
+  <!-- ── 7. Data Retention ── -->
+  <div class="card">
+    <h2>7. Data Retention and Deletion</h2>
+    <p>
+      All app data (settings, contact filters, per-app rules, flash history) is stored
+      exclusively on your device using Android DataStore. This data is retained until one
+      of the following:
+    </p>
+    <ul style="color:var(--text-muted);font-size:15px;padding-left:20px;margin-bottom:12px;">
+      <li>You clear the flash history from the app dashboard (clears history only)</li>
+      <li>You uninstall Flashy (removes all app data)</li>
+      <li>You clear the app's storage in Android Settings → Apps → Flashy → Clear Storage</li>
+    </ul>
+    <p>
+      Flash history is automatically limited to the 30 most recent events — older entries
+      are discarded automatically.
+    </p>
+    <p>
+      Firebase Crashlytics and Analytics data is retained on Google's servers per
+      Google's own retention policies (typically 90 days for crash reports).
+    </p>
+  </div>
+
+  <!-- ── 8. Children ── -->
+  <div class="card">
+    <h2>8. Children's Privacy</h2>
+    <p>
+      Flashy is not directed at children under the age of 13. We do not knowingly collect
+      personal information from children under 13. If you believe your child has provided
+      personal information through this app, please contact us at
+      <a href="mailto:aanchal.negi@nickelfox.com">aanchal.negi@nickelfox.com</a>
+      and we will take steps to delete it.
+    </p>
+  </div>
+
+  <!-- ── 9. Your Rights ── -->
+  <div class="card">
+    <h2>9. Your Rights</h2>
+    <p>Because Flashy stores all personal data locally on your device, you have full control:</p>
+    <ul style="color:var(--text-muted);font-size:15px;padding-left:20px;margin-bottom:12px;">
+      <li><strong>Access:</strong> All your data is visible in the app (settings, contact filters, flash history)</li>
+      <li><strong>Delete:</strong> Clear flash history from the dashboard; uninstall the app to delete everything</li>
+      <li><strong>Withdraw consent:</strong> Disable Notification Access or any permission at any time in Android Settings</li>
+      <li><strong>Opt out of analytics:</strong> Via your Google account privacy settings</li>
+    </ul>
+    <p>
+      If you are in the European Economic Area (EEA), you have additional rights under GDPR.
+      Since we do not directly collect or process personal data on our servers, your rights
+      requests are fulfilled by managing the app and your device directly. For Firebase-related
+      requests, contact Google at their
+      <a href="https://support.google.com/policies/contact/general_privacy_form" target="_blank">privacy request form</a>.
+    </p>
+  </div>
+
+  <!-- ── 10. Security ── -->
+  <div class="card">
+    <h2>10. Security</h2>
+    <p>
+      Flashy implements the following security measures:
+    </p>
+    <ul style="color:var(--text-muted);font-size:15px;padding-left:20px;margin-bottom:12px;">
+      <li>All local data is stored in Android DataStore with <code>allowBackup="false"</code> to prevent ADB backup extraction</li>
+      <li>Cloud backup and device-transfer backup are explicitly disabled for the DataStore via <code>data_extraction_rules.xml</code></li>
+      <li>The flash service is not exported (<code>android:exported="false"</code>) — it cannot be started by other apps</li>
+      <li>Debug logging is stripped in release builds using ProGuard</li>
+      <li>No network requests are made by Flashy's own code — only Firebase SDKs use the network</li>
+    </ul>
+  </div>
+
+  <!-- ── 11. Changes ── -->
+  <div class="card">
+    <h2>11. Changes to This Policy</h2>
+    <p>
+      We may update this Privacy Policy if features change or legal requirements evolve.
+      When we do, we update the "Last updated" date at the top of this page. For material
+      changes, we will notify users via an in-app notice. Continued use of Flashy after a
+      policy update constitutes acceptance of the revised policy.
+    </p>
+  </div>
+
+  <!-- ── 12. Contact ── -->
+  <div class="card">
+    <h2>12. Contact Us</h2>
+    <p>
+      For any privacy-related questions, data requests, or concerns:
+    </p>
+    <p>
+      <strong>Nickelfox Technologies Pvt. Ltd.</strong><br/>
+      Email: <a href="mailto:aanchal.negi@nickelfox.com">aanchal.negi@nickelfox.com</a>
+    </p>
+    <p>
+      We aim to respond to all privacy inquiries within 5 business days.
+    </p>
+  </div>
+
+  <footer>
+    <p>© 2026 Nickelfox Technologies Pvt. Ltd. · Flashy App · All rights reserved.</p>
+  </footer>
+
+</div>
+</body>
+</html>
