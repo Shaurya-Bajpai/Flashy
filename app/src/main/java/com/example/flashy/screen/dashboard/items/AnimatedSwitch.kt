@@ -31,9 +31,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import com.dsb.flashy.util.performToggleHaptic
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
@@ -47,7 +47,7 @@ fun AnimatedSwitch(
     icon: Painter,
     color: Color
 ) {
-    val haptic = LocalHapticFeedback.current
+    val view = LocalView.current
 
     val iconScale by animateFloatAsState(
         targetValue = if (isEnabled) 1f else 0.85f,
@@ -75,7 +75,7 @@ fun AnimatedSwitch(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                view.performToggleHaptic(!isEnabled)
                 onToggle(!isEnabled)
             }
             .padding(vertical = 6.dp),
@@ -112,7 +112,7 @@ fun AnimatedSwitch(
         Switch(
             checked = isEnabled,
             onCheckedChange = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                view.performToggleHaptic(it)
                 onToggle(it)
             },
             colors = SwitchDefaults.colors(

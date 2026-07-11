@@ -35,10 +35,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
+import com.dsb.flashy.util.performToggleHaptic
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +56,7 @@ fun SettingItem(
     gradientColors: List<Color>,
     isPrimary: Boolean = false
 ) {
-    val haptic = LocalHapticFeedback.current
+    val view = LocalView.current
     var isPressed by remember { mutableStateOf(false) }
 
     val scale by animateFloatAsState(
@@ -85,7 +85,7 @@ fun SettingItem(
                 )
             }
             .clickable {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                view.performToggleHaptic(!isEnabled)
                 onToggle(!isEnabled)
             }
             .padding(24.dp, 20.dp),
