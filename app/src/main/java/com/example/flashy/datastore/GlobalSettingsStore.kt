@@ -63,10 +63,14 @@ object GlobalSettingsStore {
     // Feature 8: flash event history — JSON array, newest first, capped at 30 entries
     val FLASH_HISTORY = stringPreferencesKey("flash_history")
 
+    // Onboarding — false until the user completes the first-launch walkthrough
+    val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
-                FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE, FLASH_LOW_BATTERY_ALERT -> false   // opt-in
+                FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE, FLASH_LOW_BATTERY_ALERT,
+            ONBOARDING_COMPLETE -> false   // opt-in / first-launch gates
                 else -> true
             }
         }
