@@ -145,8 +145,10 @@ fun OnboardingScreen(context: Context, onComplete: () -> Unit) {
     }
 
     fun finish() {
-        scope.launch { GlobalSettingsStore.set(context, ONBOARDING_COMPLETE, true) }
-        onComplete()
+        scope.launch {
+            GlobalSettingsStore.set(context, ONBOARDING_COMPLETE, true)
+            onComplete()  // only called after the write is confirmed on disk
+        }
     }
 
     // ── Layout ────────────────────────────────────────────────────────────
