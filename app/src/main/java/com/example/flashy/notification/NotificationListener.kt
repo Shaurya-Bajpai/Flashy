@@ -77,7 +77,7 @@ class NotificationListener : NotificationListenerService() {
 
                 else -> {
                     // Per-app rule takes precedence over the global Apps filter.
-                    // If a rule exists for this package, use its mode + contacts.
+                    // If a rule exists for this package, use its mode + contacts + speed/count.
                     // If no rule exists, fall back to the global Apps filter.
                     val appRules = (prefs[FLASH_APP_RULES] ?: "").toAppRuleList()
                     val appRule  = appRules.find { it.packageName == pkg }
@@ -89,7 +89,7 @@ class NotificationListener : NotificationListenerService() {
                                 return@launch
                             }
                         }
-                        // filterMode == "all" → flash for every sender from this app
+                        triggerFlash("NOTIF", appRule.flashCount, appRule.flashSpeedMs)
                     } else {
                         val filterMode = prefs[FLASH_NOTIF_FILTER_MODE] ?: "all"
                         if (filterMode == "selected") {
@@ -99,8 +99,8 @@ class NotificationListener : NotificationListenerService() {
                                 return@launch
                             }
                         }
+                        triggerFlash("NOTIF")
                     }
-                    triggerFlash("NOTIF")
                 }
             }
         }
@@ -129,10 +129,12 @@ class NotificationListener : NotificationListenerService() {
         return whitelist.any { nameLower.contains(it) }
     }
 
-    private fun triggerFlash(eventType: String) {
-        Log.d("FlashNotif", "Triggering flash — event: $eventType")
+    private fun triggerFlash(eventType: String, countOverride: Int = -1, speedOverride: Int = -1) {
+        Log.d("FlashNotif", "Triggering flash — event: $eventType count=$countOverride speed=$speedOverride")
         val intent = Intent(this, FlashCallService::class.java).apply {
             putExtra("eventType", eventType)
+            if (countOverride >= 0) putExtra("flashCountOverride", countOverride)
+            if (speedOverride >= 0) putExtra("flashSpeedOverride", speedOverride)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)

@@ -7,14 +7,18 @@ data class AppFlashRule(
     val packageName: String,
     val appName: String,
     val filterMode: String = "all",
-    val contacts: String = ""
+    val contacts: String = "",
+    val flashCount: Int = 5,      // 3, 5, 10
+    val flashSpeedMs: Int = 200   // 100 (Rapid), 200 (Normal), 400 (Gentle)
 ) {
     companion object {
         fun fromJson(obj: JSONObject) = AppFlashRule(
-            packageName = obj.getString("pkg"),
-            appName     = obj.getString("name"),
-            filterMode  = obj.optString("mode", "all"),
-            contacts    = obj.optString("contacts", "")
+            packageName  = obj.getString("pkg"),
+            appName      = obj.getString("name"),
+            filterMode   = obj.optString("mode", "all"),
+            contacts     = obj.optString("contacts", ""),
+            flashCount   = obj.optInt("count", 5),
+            flashSpeedMs = obj.optInt("speed", 200)
         )
     }
 
@@ -23,6 +27,8 @@ data class AppFlashRule(
         put("name",     appName)
         put("mode",     filterMode)
         put("contacts", contacts)
+        put("count",    flashCount)
+        put("speed",    flashSpeedMs)
     }
 }
 

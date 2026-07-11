@@ -237,6 +237,40 @@ private fun AppRuleRow(
             }
         }
 
+        // Speed row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "SPEED",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextDim,
+                modifier = Modifier.width(44.dp)
+            )
+            AppPatternChip("Rapid",  rule.flashSpeedMs == 100) { onUpdate(rule.copy(flashSpeedMs = 100)) }
+            AppPatternChip("Normal", rule.flashSpeedMs == 200) { onUpdate(rule.copy(flashSpeedMs = 200)) }
+            AppPatternChip("Gentle", rule.flashSpeedMs == 400) { onUpdate(rule.copy(flashSpeedMs = 400)) }
+        }
+
+        // Count row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "COUNT",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextDim,
+                modifier = Modifier.width(44.dp)
+            )
+            AppPatternChip("3×",  rule.flashCount == 3)  { onUpdate(rule.copy(flashCount = 3))  }
+            AppPatternChip("5×",  rule.flashCount == 5)  { onUpdate(rule.copy(flashCount = 5))  }
+            AppPatternChip("10×", rule.flashCount == 10) { onUpdate(rule.copy(flashCount = 10)) }
+        }
+
         AnimatedVisibility(
             visible = isSelected,
             enter = expandVertically(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
@@ -465,6 +499,25 @@ private fun AppModeChip(text: String, selected: Boolean, onClick: () -> Unit) {
             .border(1.dp, border, shape)
             .clickable { onClick() }
             .padding(horizontal = 10.dp, vertical = 5.dp)
+    )
+}
+
+@Composable
+private fun AppPatternChip(text: String, selected: Boolean, onClick: () -> Unit) {
+    val bg        by animateColorAsState(if (selected) Amber.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f), label = "apc_bg_$text")
+    val border    by animateColorAsState(if (selected) Amber.copy(alpha = 0.60f) else Color.White.copy(alpha = 0.10f), label = "apc_border_$text")
+    val textColor by animateColorAsState(if (selected) Amber else TextDim, label = "apc_text_$text")
+    val shape = RoundedCornerShape(6.dp)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = textColor,
+        modifier = Modifier
+            .clip(shape)
+            .background(bg, shape)
+            .border(1.dp, border, shape)
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     )
 }
 
