@@ -27,16 +27,32 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
-            resValue("string", "app_name", "Flashy-Dev")
+            resValue("string", "app_name", "Flashy Dev")
+            buildConfigField("String", "ENVIRONMENT", "\"dev\"")
+            buildConfigField("Boolean", "ENABLE_LOGGING", "true")
+        }
+
+        create("stage") {
+            dimension = "environment"
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+            resValue("string", "app_name", "Flashy Stage")
+            buildConfigField("String", "ENVIRONMENT", "\"stage\"")
+            buildConfigField("Boolean", "ENABLE_LOGGING", "true")
         }
 
         create("prod") {
             dimension = "environment"
             resValue("string", "app_name", "Flashy")
+            buildConfigField("String", "ENVIRONMENT", "\"prod\"")
+            buildConfigField("Boolean", "ENABLE_LOGGING", "false")
         }
     }
 
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -55,6 +71,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
