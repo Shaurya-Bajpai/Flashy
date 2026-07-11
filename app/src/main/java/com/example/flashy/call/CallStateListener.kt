@@ -10,6 +10,8 @@ import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
@@ -92,7 +94,10 @@ class CallStateListener(
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
                 if (isCallFlashAllowed()) {
-                    flashController.blinkFlashIndefinitely(200L)
+                    val speedMs = (prefs[FLASH_CALL_SPEED_MS] ?: 200).toLong()
+                    val count   = prefs[FLASH_CALL_COUNT] ?: 0
+                    if (count == 0) flashController.blinkFlashIndefinitely(speedMs)
+                    else flashController.blinkFlash(speedMs, count)
                 }
             }
             TelephonyManager.CALL_STATE_IDLE, TelephonyManager.CALL_STATE_OFFHOOK -> {

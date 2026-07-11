@@ -23,6 +23,14 @@ object GlobalSettingsStore {
     val FLASH_SCREEN_OFF_ONLY = booleanPreferencesKey("flash_screen_off_only") // true
     val FLASH_RINGER_MODE = stringPreferencesKey("flash_ringer_mode") // "All", "Normal", "Vibrate", "Silent"
 
+    // Flash pattern — speed (ms per half-cycle) and count (0 = continuous) per trigger type
+    val FLASH_CALL_COUNT    = intPreferencesKey("flash_call_count")      // 0=∞, 3, 5, 10
+    val FLASH_CALL_SPEED_MS = intPreferencesKey("flash_call_speed_ms")   // 100, 200, 400
+    val FLASH_SMS_COUNT     = intPreferencesKey("flash_sms_count")        // 3, 5, 10
+    val FLASH_SMS_SPEED_MS  = intPreferencesKey("flash_sms_speed_ms")    // 100, 200, 400
+    val FLASH_NOTIF_COUNT   = intPreferencesKey("flash_notif_count")     // 3, 5, 10
+    val FLASH_NOTIF_SPEED_MS= intPreferencesKey("flash_notif_speed_ms")  // 100, 200, 400
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: true
@@ -49,6 +57,9 @@ object GlobalSettingsStore {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
                 FLASH_BATTERY_THRESHOLD -> 15
+                FLASH_SMS_COUNT, FLASH_NOTIF_COUNT -> 5
+                FLASH_CALL_COUNT -> 0   // 0 = continuous (blinks until call ends)
+                FLASH_CALL_SPEED_MS, FLASH_SMS_SPEED_MS, FLASH_NOTIF_SPEED_MS -> 200
                 else -> 0
             }
         }
