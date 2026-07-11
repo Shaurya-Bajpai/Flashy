@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
@@ -93,6 +94,12 @@ class CallStateListener(
 
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
+                // In "selected" mode the caller's name is only available from the
+                // incoming-call notification title. NotificationListener reads that
+                // name and checks the whitelist before flashing. Hand off to it here.
+                val filterMode = prefs[FLASH_CALL_FILTER_MODE] ?: "all"
+                if (filterMode == "selected") return
+
                 if (isCallFlashAllowed()) {
                     val speedMs = (prefs[FLASH_CALL_SPEED_MS] ?: 200).toLong()
                     val count   = prefs[FLASH_CALL_COUNT] ?: 0
