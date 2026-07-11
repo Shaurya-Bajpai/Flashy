@@ -56,14 +56,17 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_APP_RULES
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_LOW_BATTERY_ALERT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_HISTORY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_REACTIVE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_SENSITIVITY
 import com.dsb.flashy.datastore.flashDataStore
+import com.dsb.flashy.model.toFlashHistoryList
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
 import com.dsb.flashy.screen.dashboard.items.AnimatedBackground
 import com.dsb.flashy.screen.dashboard.items.PremiumHeader
 import com.dsb.flashy.screen.dashboard.items.StatusAlert
 import com.dsb.flashy.screen.dashboard.items.card.AdaptiveRingerCard
+import com.dsb.flashy.screen.dashboard.items.card.FlashHistoryCard
 import com.dsb.flashy.screen.dashboard.items.card.AppFilterCard
 import com.dsb.flashy.screen.dashboard.items.card.ContactFilterCard
 import com.dsb.flashy.screen.dashboard.items.card.FlashPatternCard
@@ -104,6 +107,7 @@ fun FlashDashboardScreen(context: Context) {
     val respectSystemDnd      by GlobalSettingsStore.get(context, FLASH_RESPECT_SYSTEM_DND).collectAsState(initial = true)
     val chargingCompleteFlash by GlobalSettingsStore.get(context, FLASH_CHARGING_COMPLETE).collectAsState(initial = false)
     val lowBatteryAlert       by GlobalSettingsStore.get(context, FLASH_LOW_BATTERY_ALERT).collectAsState(initial = false)
+    val flashHistoryJson      by GlobalSettingsStore.getString(context, FLASH_HISTORY).collectAsState(initial = "")
     val soundReactive         by GlobalSettingsStore.get(context, FLASH_SOUND_REACTIVE).collectAsState(initial = false)
     val soundSensitivity      by GlobalSettingsStore.getInt(context, FLASH_SOUND_SENSITIVITY).collectAsState(initial = 50)
     var soundSensitivitySlider by remember { mutableStateOf(50) }
@@ -313,6 +317,13 @@ fun FlashDashboardScreen(context: Context) {
                     context = context,
                     appRulesJson = appRulesJson,
                     onAppRulesChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_APP_RULES, v) } }
+                )
+            }
+
+            item {
+                FlashHistoryCard(
+                    events = flashHistoryJson.toFlashHistoryList(),
+                    onClear = { scope.launch { GlobalSettingsStore.clearFlashHistory(context) } }
                 )
             }
 

@@ -60,7 +60,7 @@ class NotificationListener : NotificationListenerService() {
                         Log.d("FlashNotif", "Call from \"$senderName\" not in whitelist — skipped")
                         return@launch
                     }
-                    triggerFlash("CALL")
+                    triggerFlash("CALL", senderName = senderName)
                 }
 
                 Notification.CATEGORY_MESSAGE -> {
@@ -72,7 +72,7 @@ class NotificationListener : NotificationListenerService() {
                             return@launch
                         }
                     }
-                    triggerFlash("SMS")
+                    triggerFlash("SMS", senderName = senderName, appPackage = pkg, appName = resolveAppName(pkg))
                 }
 
                 else -> {
@@ -81,6 +81,7 @@ class NotificationListener : NotificationListenerService() {
                     // If no rule exists, fall back to the global Apps filter.
                     val appRules = (prefs[FLASH_APP_RULES] ?: "").toAppRuleList()
                     val appRule  = appRules.find { it.packageName == pkg }
+                    val resolvedAppName = appRule?.appName?.ifBlank { resolveAppName(pkg) } ?: resolveAppName(pkg)
 
                     if (appRule != null) {
                         if (appRule.filterMode == "blocked") {
@@ -93,7 +94,8 @@ class NotificationListener : NotificationListenerService() {
                                 return@launch
                             }
                         }
-                        triggerFlash("NOTIF", appRule.flashCount, appRule.flashSpeedMs)
+                        triggerFlash("NOTIF", appRule.flashCount, appRule.flashSpeedMs,
+                            senderName = senderName, appPackage = pkg, appName = resolvedAppName)
                     } else {
                         val filterMode = prefs[FLASH_NOTIF_FILTER_MODE] ?: "all"
                         if (filterMode == "selected") {
@@ -103,7 +105,7 @@ class NotificationListener : NotificationListenerService() {
                                 return@launch
                             }
                         }
-                        triggerFlash("NOTIF")
+                        triggerFlash("NOTIF", senderName = senderName, appPackage = pkg, appName = resolvedAppName)
                     }
                 }
             }
@@ -116,6 +118,13 @@ class NotificationListener : NotificationListenerService() {
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private fun resolveAppName(packageName: String): String {
+        return try {
+            val info = applicationContext.packageManager.getApplicationInfo(packageName, 0)
+            applicationContext.packageManager.getApplicationLabel(info).toString()
+        } catch (_: Exception) { packageName }
+    }
 
     /**
      * Returns true if [senderName] matches any entry in [contactsCsv].
@@ -133,12 +142,22 @@ class NotificationListener : NotificationListenerService() {
         return whitelist.any { nameLower.contains(it) }
     }
 
-    private fun triggerFlash(eventType: String, countOverride: Int = -1, speedOverride: Int = -1) {
-        Log.d("FlashNotif", "Triggering flash — event: $eventType count=$countOverride speed=$speedOverride")
+    private fun triggerFlash(
+        eventType: String,
+        countOverride: Int = -1,
+        speedOverride: Int = -1,
+        senderName: String = "",
+        appPackage: String = "",
+        appName: String = ""
+    ) {
+        Log.d("FlashNotif", "Triggering flash — event: $eventType count=$countOverride speed=$speedOverride sender=$senderName")
         val intent = Intent(this, FlashCallService::class.java).apply {
             putExtra("eventType", eventType)
             if (countOverride >= 0) putExtra("flashCountOverride", countOverride)
             if (speedOverride >= 0) putExtra("flashSpeedOverride", speedOverride)
+            putExtra("senderName", senderName)
+            putExtra("appPackage", appPackage)
+            putExtra("appName", appName)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)

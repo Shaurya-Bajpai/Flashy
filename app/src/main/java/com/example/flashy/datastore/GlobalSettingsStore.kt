@@ -7,6 +7,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.dsb.flashy.model.FlashHistoryEvent
+import com.dsb.flashy.model.toFlashHistoryList
+import com.dsb.flashy.model.toHistoryJsonString
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -57,6 +60,9 @@ object GlobalSettingsStore {
     // Feature 7: flash when battery drops to the Battery Guard threshold (off by default)
     val FLASH_LOW_BATTERY_ALERT = booleanPreferencesKey("flash_low_battery_alert")
 
+    // Feature 8: flash event history — JSON array, newest first, capped at 30 entries
+    val FLASH_HISTORY = stringPreferencesKey("flash_history")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
@@ -99,6 +105,20 @@ object GlobalSettingsStore {
     suspend fun edit(context: Context, key: Preferences.Key<String>, value: String) {
         context.flashDataStore.edit { prefs ->
             prefs[key] = value
+        }
+    }
+
+    suspend fun appendFlashHistory(context: Context, event: FlashHistoryEvent) {
+        context.flashDataStore.edit { prefs ->
+            val existing = (prefs[FLASH_HISTORY] ?: "").toFlashHistoryList().toMutableList()
+            existing.add(0, event)
+            prefs[FLASH_HISTORY] = existing.take(30).toHistoryJsonString()
+        }
+    }
+
+    suspend fun clearFlashHistory(context: Context) {
+        context.flashDataStore.edit { prefs ->
+            prefs[FLASH_HISTORY] = ""
         }
     }
 
