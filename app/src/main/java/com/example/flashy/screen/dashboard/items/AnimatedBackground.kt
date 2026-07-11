@@ -24,23 +24,19 @@ import kotlin.random.Random
 fun AnimatedBackground() {
     val infinite = rememberInfiniteTransition(label = "bg")
 
-    val orb1Angle by infinite.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(28000, easing = LinearEasing)),
-        label = "o1"
-    )
-    val orb2Angle by infinite.animateFloat(
-        initialValue = 360f, targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(18000, easing = LinearEasing)),
-        label = "o2"
-    )
+    // Single slow nebula pulse — the only animation, kept subtle at 10s per cycle.
+    // The two orbital ring animations (28s + 18s) were removed: they forced 60fps Canvas
+    // redraws during scroll, causing jank. Static orb positions look identical at a glance.
     val nebulaPulse by infinite.animateFloat(
         initialValue = 0.4f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(5000, easing = LinearEasing), RepeatMode.Reverse),
+        animationSpec = infiniteRepeatable(tween(10000, easing = LinearEasing), RepeatMode.Reverse),
         label = "neb"
     )
 
-    // Deterministic star field — computed once and stable
+    // Pre-compute static orb angles once — avoids repeated constant-folding in draw
+    val outerAngles = remember { List(6) { i -> (i * 60f) * (PI.toFloat() / 180f) } }
+    val innerAngles  = remember { List(4) { i -> (i * 90f + 45f) * (PI.toFloat() / 180f) } }
+
     val stars = remember {
         List(70) {
             Triple(Random.nextFloat(), Random.nextFloat(), 0.15f + Random.nextFloat() * 0.55f)
@@ -51,7 +47,7 @@ fun AnimatedBackground() {
         val cx = size.width / 2f
         val cy = size.height / 2f
 
-        // Warm amber core — the unseen light source above
+        // Warm amber core — breathes with nebulaPulse
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
@@ -66,13 +62,10 @@ fun AnimatedBackground() {
             center = Offset(cx, cy * 0.5f)
         )
 
-        // Deep orange ember — bottom-right accent
+        // Deep orange ember — bottom-right accent (static)
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(
-                    Color(0xFFFF6B35).copy(alpha = 0.04f),
-                    Color.Transparent
-                ),
+                colors = listOf(Color(0xFFFF6B35).copy(alpha = 0.04f), Color.Transparent),
                 center = Offset(cx * 1.7f, cy * 1.6f),
                 radius = size.width * 0.6f
             ),
@@ -80,22 +73,24 @@ fun AnimatedBackground() {
             center = Offset(cx * 1.7f, cy * 1.6f)
         )
 
-        // Outer orbital ring — 6 orbs clockwise
+        // Outer static orbs — 6 evenly-spaced positions
         val r1 = minOf(size.width, size.height) * 0.40f
-        repeat(6) { i ->
-            val theta = (orb1Angle + i * 60f) * (PI.toFloat() / 180f)
-            val ox = cx + cos(theta) * r1
-            val oy = cy + sin(theta) * r1
-            drawCircle(color = Color(0xFFFFB300).copy(alpha = 0.055f), radius = 48f, center = Offset(ox, oy))
+        outerAngles.forEach { theta ->
+            drawCircle(
+                color = Color(0xFFFFB300).copy(alpha = 0.055f),
+                radius = 48f,
+                center = Offset(cx + cos(theta) * r1, cy + sin(theta) * r1)
+            )
         }
 
-        // Inner orbital ring — 4 orbs counter-clockwise, tighter
+        // Inner static orbs — 4 offset positions
         val r2 = minOf(size.width, size.height) * 0.22f
-        repeat(4) { i ->
-            val theta = (orb2Angle + i * 90f) * (PI.toFloat() / 180f)
-            val ox = cx + cos(theta) * r2
-            val oy = cy + sin(theta) * r2
-            drawCircle(color = Color(0xFFFF8F00).copy(alpha = 0.07f), radius = 30f, center = Offset(ox, oy))
+        innerAngles.forEach { theta ->
+            drawCircle(
+                color = Color(0xFFFF8F00).copy(alpha = 0.07f),
+                radius = 30f,
+                center = Offset(cx + cos(theta) * r2, cy + sin(theta) * r2)
+            )
         }
 
         // Warm star field

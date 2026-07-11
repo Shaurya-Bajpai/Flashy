@@ -37,7 +37,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -97,12 +99,41 @@ private const val PRIVACY_POLICY_URL = "https://yoursite.com/privacy-policy"
 @Composable
 fun FlashDashboardScreen(context: Context) {
     val scope = rememberCoroutineScope()
-    val prefsFlow = context.flashDataStore.data.collectAsState(initial = emptyPreferences())
-    val batteryThreshold = prefsFlow.value[FLASH_BATTERY_THRESHOLD] ?: 15
-    val ringerMode = prefsFlow.value[FLASH_RINGER_MODE] ?: "All"
+    // Single DataStore subscription — all 28 values come from one atomic snapshot.
+    // Replaces 26 individual collectAsState() calls: 1 recomposition per change, not 26.
+    val prefs by context.flashDataStore.data.collectAsState(initial = emptyPreferences())
+
+    val flashGlobal           = prefs[FLASH_GLOBAL]              ?: true
+    val flashCall             = prefs[FLASH_CALL]                ?: true
+    val flashSms              = prefs[FLASH_SMS]                 ?: true
+    val flashNotify           = prefs[FLASH_NOTIFICATIONS]       ?: true
+    val flashDndStart         = prefs[FLASH_DND_START]           ?: "00:00"
+    val flashDndEnd           = prefs[FLASH_DND_END]             ?: "07:00"
+    val flashScreenOffOnly    = prefs[FLASH_SCREEN_OFF_ONLY]     ?: true
+    val callFilterMode        = prefs[FLASH_CALL_FILTER_MODE]    ?: "all"
+    val callContacts          = prefs[FLASH_CALL_CONTACTS]       ?: ""
+    val smsFilterMode         = prefs[FLASH_SMS_FILTER_MODE]     ?: "all"
+    val smsContacts           = prefs[FLASH_SMS_CONTACTS]        ?: ""
+    val notifFilterMode       = prefs[FLASH_NOTIF_FILTER_MODE]   ?: "all"
+    val notifContacts         = prefs[FLASH_NOTIF_CONTACTS]      ?: ""
+    val appRulesJson          = prefs[FLASH_APP_RULES]           ?: ""
+    val respectSystemDnd      = prefs[FLASH_RESPECT_SYSTEM_DND]  ?: true
+    val chargingCompleteFlash = prefs[FLASH_CHARGING_COMPLETE]   ?: false
+    val lowBatteryAlert       = prefs[FLASH_LOW_BATTERY_ALERT]   ?: false
+    val flashHistoryJson      = prefs[FLASH_HISTORY]             ?: ""
+    val soundReactive         = prefs[FLASH_SOUND_REACTIVE]      ?: false
+    val soundSensitivity      = prefs[FLASH_SOUND_SENSITIVITY]   ?: 50
+    val callCount             = prefs[FLASH_CALL_COUNT]          ?: 0
+    val callSpeedMs           = prefs[FLASH_CALL_SPEED_MS]       ?: 200
+    val smsCount              = prefs[FLASH_SMS_COUNT]           ?: 5
+    val smsSpeedMs            = prefs[FLASH_SMS_SPEED_MS]        ?: 200
+    val notifCount            = prefs[FLASH_NOTIF_COUNT]         ?: 5
+    val notifSpeedMs          = prefs[FLASH_NOTIF_SPEED_MS]      ?: 200
+    val batteryThreshold      = prefs[FLASH_BATTERY_THRESHOLD]   ?: 15
+    val ringerMode            = prefs[FLASH_RINGER_MODE]         ?: "All"
 
     var batterySlider by remember { mutableFloatStateOf(batteryThreshold.toFloat()) }
-    var showPulse by remember { mutableStateOf(false) }
+    var showPulse by remember { mutableStateOf(true) }
 
     // Battery optimization state — re-checked every time the user returns to the app
     val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as PowerManager }
@@ -123,37 +154,7 @@ fun FlashDashboardScreen(context: Context) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val flashGlobal by GlobalSettingsStore.get(context, FLASH_GLOBAL).collectAsState(initial = true)
-    val flashCall by GlobalSettingsStore.get(context, FLASH_CALL).collectAsState(initial = true)
-    val flashSms by GlobalSettingsStore.get(context, FLASH_SMS).collectAsState(initial = true)
-    val flashNotify by GlobalSettingsStore.get(context, FLASH_NOTIFICATIONS).collectAsState(initial = true)
-    val flashDndStart by GlobalSettingsStore.getString(context, FLASH_DND_START).collectAsState(initial = "00:00")
-    val flashDndEnd by GlobalSettingsStore.getString(context, FLASH_DND_END).collectAsState(initial = "07:00")
-    val flashScreenOffOnly by GlobalSettingsStore.get(context, FLASH_SCREEN_OFF_ONLY).collectAsState(initial = true)
-
-    // Contact filter settings
-    val callFilterMode   by GlobalSettingsStore.getString(context, FLASH_CALL_FILTER_MODE).collectAsState(initial = "all")
-    val callContacts     by GlobalSettingsStore.getString(context, FLASH_CALL_CONTACTS).collectAsState(initial = "")
-    val smsFilterMode    by GlobalSettingsStore.getString(context, FLASH_SMS_FILTER_MODE).collectAsState(initial = "all")
-    val smsContacts      by GlobalSettingsStore.getString(context, FLASH_SMS_CONTACTS).collectAsState(initial = "")
-    val notifFilterMode  by GlobalSettingsStore.getString(context, FLASH_NOTIF_FILTER_MODE).collectAsState(initial = "all")
-    val notifContacts    by GlobalSettingsStore.getString(context, FLASH_NOTIF_CONTACTS).collectAsState(initial = "")
-    val appRulesJson        by GlobalSettingsStore.getString(context, FLASH_APP_RULES).collectAsState(initial = "")
-    val respectSystemDnd      by GlobalSettingsStore.get(context, FLASH_RESPECT_SYSTEM_DND).collectAsState(initial = true)
-    val chargingCompleteFlash by GlobalSettingsStore.get(context, FLASH_CHARGING_COMPLETE).collectAsState(initial = false)
-    val lowBatteryAlert       by GlobalSettingsStore.get(context, FLASH_LOW_BATTERY_ALERT).collectAsState(initial = false)
-    val flashHistoryJson      by GlobalSettingsStore.getString(context, FLASH_HISTORY).collectAsState(initial = "")
-    val soundReactive         by GlobalSettingsStore.get(context, FLASH_SOUND_REACTIVE).collectAsState(initial = false)
-    val soundSensitivity      by GlobalSettingsStore.getInt(context, FLASH_SOUND_SENSITIVITY).collectAsState(initial = 50)
     var soundSensitivitySlider by remember { mutableStateOf(50) }
-
-    // Flash pattern settings
-    val callCount    by GlobalSettingsStore.getInt(context, FLASH_CALL_COUNT).collectAsState(initial = 0)
-    val callSpeedMs  by GlobalSettingsStore.getInt(context, FLASH_CALL_SPEED_MS).collectAsState(initial = 200)
-    val smsCount     by GlobalSettingsStore.getInt(context, FLASH_SMS_COUNT).collectAsState(initial = 5)
-    val smsSpeedMs   by GlobalSettingsStore.getInt(context, FLASH_SMS_SPEED_MS).collectAsState(initial = 200)
-    val notifCount   by GlobalSettingsStore.getInt(context, FLASH_NOTIF_COUNT).collectAsState(initial = 5)
-    val notifSpeedMs by GlobalSettingsStore.getInt(context, FLASH_NOTIF_SPEED_MS).collectAsState(initial = 200)
 
     // Request READ_PHONE_STATE only when the user explicitly enables the Calls feature.
     // This way the system permission dialog appears in context — the user understands why
@@ -174,8 +175,9 @@ fun FlashDashboardScreen(context: Context) {
         }
     }
 
-    // Keep local slider in sync with DataStore (e.g. first load)
+    // Keep local sliders in sync with DataStore (e.g. first load after initial emptyPreferences())
     LaunchedEffect(soundSensitivity) { soundSensitivitySlider = soundSensitivity }
+    LaunchedEffect(batteryThreshold) { batterySlider = batteryThreshold.toFloat() }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -203,16 +205,16 @@ fun FlashDashboardScreen(context: Context) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { PremiumHeader(showPulse, flashGlobal) }
+            item(key = "header") { PremiumHeader(showPulse, flashGlobal) }
 
             if (!flashGlobal) {
-                item { StatusAlert() }
+                item(key = "status_alert") { StatusAlert() }
             }
 
             if (batteryOptimizationActive && !batteryBannerDismissed) {
-                item {
+                item(key = "battery_banner") {
                     BatteryOptimizationBanner(
                         onFixClick = {
                             context.startActivity(
@@ -225,7 +227,9 @@ fun FlashDashboardScreen(context: Context) {
                 }
             }
 
-            item {
+            // ── MASTER CONTROL ────────────────────────────────────────────────
+            item(key = "sec_master") { SectionLabel("MASTER CONTROL") }
+            item(key = "master_card") {
                 MasterControlCard(
                     flashGlobal = flashGlobal,
                     flashScreenOffOnly = flashScreenOffOnly,
@@ -234,7 +238,9 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
+            // ── ALERT TRIGGERS ────────────────────────────────────────────────
+            item(key = "sec_alerts") { SectionLabel("ALERT TRIGGERS") }
+            item(key = "alert_grid") {
                 AlertGrid(
                     flashCall = flashCall,
                     flashSms = flashSms,
@@ -256,7 +262,9 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
+            // ── SMART BEHAVIOR ────────────────────────────────────────────────
+            item(key = "sec_behavior") { SectionLabel("SMART BEHAVIOR") }
+            item(key = "schedule_card") {
                 SmartScheduleCard(
                     startTime = flashDndStart,
                     endTime = flashDndEnd,
@@ -272,8 +280,18 @@ fun FlashDashboardScreen(context: Context) {
                     }
                 )
             }
+            item(key = "ringer_card") {
+                AdaptiveRingerCard(
+                    selectedMode = ringerMode,
+                    onModeChange = { mode ->
+                        scope.launch { context.flashDataStore.edit { it[FLASH_RINGER_MODE] = mode } }
+                    }
+                )
+            }
 
-            item {
+            // ── BATTERY ───────────────────────────────────────────────────────
+            item(key = "sec_battery") { SectionLabel("BATTERY") }
+            item(key = "battery_card") {
                 IntelligentBatteryCard(
                     threshold = batterySlider / 100f,
                     chargingCompleteFlash = chargingCompleteFlash,
@@ -293,16 +311,9 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
-                AdaptiveRingerCard(
-                    selectedMode = ringerMode,
-                    onModeChange = { mode ->
-                        scope.launch { context.flashDataStore.edit { it[FLASH_RINGER_MODE] = mode } }
-                    }
-                )
-            }
-
-            item {
+            // ── ADVANCED ──────────────────────────────────────────────────────
+            item(key = "sec_advanced") { SectionLabel("ADVANCED") }
+            item(key = "sound_card") {
                 SoundReactiveCard(
                     enabled = soundReactive,
                     sensitivity = soundSensitivitySlider,
@@ -326,8 +337,7 @@ fun FlashDashboardScreen(context: Context) {
                     }
                 )
             }
-
-            item {
+            item(key = "pattern_card") {
                 FlashPatternCard(
                     callCount    = callCount,
                     callSpeedMs  = callSpeedMs,
@@ -344,7 +354,9 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
+            // ── FILTERING ─────────────────────────────────────────────────────
+            item(key = "sec_filtering") { SectionLabel("FILTERING") }
+            item(key = "contact_card") {
                 ContactFilterCard(
                     callFilterMode   = callFilterMode,
                     callContacts     = callContacts,
@@ -360,8 +372,7 @@ fun FlashDashboardScreen(context: Context) {
                     onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
                 )
             }
-
-            item {
+            item(key = "app_filter_card") {
                 AppFilterCard(
                     context = context,
                     appRulesJson = appRulesJson,
@@ -369,20 +380,21 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
+            // ── HISTORY & SETTINGS ────────────────────────────────────────────
+            item(key = "sec_history") { SectionLabel("HISTORY & SETTINGS") }
+            item(key = "history_card") {
                 FlashHistoryCard(
                     events = flashHistoryJson.toFlashHistoryList(),
                     onClear = { scope.launch { GlobalSettingsStore.clearFlashHistory(context) } }
                 )
             }
-
-            item {
+            item(key = "quick_access_card") {
                 QuickAccessCard {
                     context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
                 }
             }
 
-            item {
+            item(key = "privacy_footer") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -403,4 +415,17 @@ fun FlashDashboardScreen(context: Context) {
             }
         }
     }
+}
+
+@Composable
+private fun SectionLabel(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.5.sp,
+        ),
+        color = TextDim,
+        modifier = Modifier.padding(start = 2.dp, top = 6.dp, bottom = 0.dp)
+    )
 }
