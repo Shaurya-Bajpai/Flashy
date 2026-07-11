@@ -3,12 +3,17 @@
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
 
+# ── Strip debug/verbose log calls from release builds ─────────────────────────
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}
+
 # ── App components registered in AndroidManifest ─────────────────────────────
 # Services, receivers, and the notification listener are instantiated by the
 # Android framework via reflection — R8 must not rename or remove them.
 -keep class com.dsb.flashy.services.** { *; }
 -keep class com.dsb.flashy.notification.** { *; }
--keep class com.dsb.flashy.sms.** { *; }
 -keep class com.dsb.flashy.startup.** { *; }
 -keep class com.dsb.flashy.call.** { *; }
 -keep class com.dsb.flashy.managers.** { *; }

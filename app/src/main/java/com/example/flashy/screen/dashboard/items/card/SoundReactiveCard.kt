@@ -1,5 +1,9 @@
 package com.dsb.flashy.screen.dashboard.items.card
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -13,18 +17,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.dsb.flashy.R
 import com.dsb.flashy.screen.dashboard.items.AnimatedSwitch
 import com.dsb.flashy.ui.theme.Amber
@@ -42,6 +54,61 @@ fun SoundReactiveCard(
     onSensitivityChange: (Int) -> Unit,
     onSensitivityChangeFinished: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var showDisclosure by remember { mutableStateOf(false) }
+
+    // Launches the system permission dialog after the user accepts our disclosure.
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) onEnabledChange(true)
+    }
+
+    // Intercept the toggle: if turning ON without the permission, show disclosure first.
+    val handleToggle: (Boolean) -> Unit = { checked ->
+        if (!checked) {
+            onEnabledChange(false)
+        } else {
+            val alreadyGranted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+            if (alreadyGranted) {
+                onEnabledChange(true)
+            } else {
+                showDisclosure = true
+            }
+        }
+    }
+
+    // Prominent disclosure required by Google Play before requesting RECORD_AUDIO.
+    if (showDisclosure) {
+        AlertDialog(
+            onDismissRequest = { showDisclosure = false },
+            title = { Text("Microphone Access Required") },
+            text = {
+                Text(
+                    "Sound Reactive Flash uses your microphone to detect sound levels in real time " +
+                    "so the flash can sync with music or claps.\n\n" +
+                    "Audio is processed entirely on your device — it is never recorded, " +
+                    "stored, or transmitted anywhere."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDisclosure = false
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }) {
+                    Text("Allow", color = Amber)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDisclosure = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     GlassMorphismCard(accentGlow = if (enabled) ColorSoundReactive.copy(alpha = 0.08f) else Color.Transparent) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -72,7 +139,7 @@ fun SoundReactiveCard(
                 label = "Beat Sync",
                 sublabel = "Uses microphone · may increase battery usage",
                 isEnabled = enabled,
-                onToggle = onEnabledChange,
+                onToggle = handleToggle,
                 icon = painterResource(R.drawable.baseline_volume_up_24),
                 color = ColorSoundReactive
             )

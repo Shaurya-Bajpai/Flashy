@@ -31,8 +31,7 @@ class StartupReceiver : BroadcastReceiver() {
     private fun hasAllPermissions(context: Context): Boolean {
         val perms = listOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.RECEIVE_SMS
+            Manifest.permission.READ_PHONE_STATE
         )
         return perms.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
