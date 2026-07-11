@@ -1,21 +1,48 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ── Debugging ────────────────────────────────────────────────────────────────
+# Keep source file names and line numbers in stack traces reported by Crashlytics.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── App components registered in AndroidManifest ─────────────────────────────
+# Services, receivers, and the notification listener are instantiated by the
+# Android framework via reflection — R8 must not rename or remove them.
+-keep class com.dsb.flashy.services.** { *; }
+-keep class com.dsb.flashy.notification.** { *; }
+-keep class com.dsb.flashy.sms.** { *; }
+-keep class com.dsb.flashy.startup.** { *; }
+-keep class com.dsb.flashy.call.** { *; }
+-keep class com.dsb.flashy.managers.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── DataStore / Preferences ───────────────────────────────────────────────────
+# Preference keys are looked up by name at runtime.
+-keep class com.dsb.flashy.datastore.** { *; }
+-keepclassmembers class com.dsb.flashy.datastore.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── Kotlin coroutines ─────────────────────────────────────────────────────────
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembernames class kotlinx.** {
+    volatile <fields>;
+}
+
+# ── Firebase / Crashlytics ────────────────────────────────────────────────────
+-keepattributes *Annotation*
+-keepattributes Signature
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+# ── Jetpack Compose ───────────────────────────────────────────────────────────
+# Compose is safe under R8 full mode by default, but keep the entry points.
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+
+# ── AndroidX DataStore ────────────────────────────────────────────────────────
+-keep class androidx.datastore.** { *; }
+-keepclassmembers class androidx.datastore.** { *; }
+
+# ── Suppress known-safe warnings ──────────────────────────────────────────────
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
