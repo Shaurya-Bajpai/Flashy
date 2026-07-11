@@ -1,8 +1,12 @@
 package com.dsb.flashy.screen.dashboard
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import com.dsb.flashy.datastore.GlobalSettingsStore
@@ -65,6 +70,17 @@ fun FlashDashboardScreen(context: Context) {
     val flashDndStart by GlobalSettingsStore.getString(context, FLASH_DND_START).collectAsState(initial = "00:00")
     val flashDndEnd by GlobalSettingsStore.getString(context, FLASH_DND_END).collectAsState(initial = "07:00")
     val flashScreenOffOnly by GlobalSettingsStore.get(context, FLASH_SCREEN_OFF_ONLY).collectAsState(initial = true)
+
+    // Request READ_PHONE_STATE only when the user explicitly enables the Calls feature.
+    // This way the system permission dialog appears in context — the user understands why
+    // the app needs it because they just tapped "Flash on Calls".
+    val callPermLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            scope.launch { GlobalSettingsStore.set(context, FLASH_CALL, true) }
+        }
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -114,7 +130,18 @@ fun FlashDashboardScreen(context: Context) {
                     flashCall = flashCall,
                     flashSms = flashSms,
                     flashNotify = flashNotify,
-                    onFlashCallChange = { scope.launch { GlobalSettingsStore.set(context, FLASH_CALL, it) } },
+                    onFlashCallChange = { enabled ->
+                        if (!enabled) {
+                            scope.launch { GlobalSettingsStore.set(context, FLASH_CALL, false) }
+                        } else if (ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.READ_PHONE_STATE
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            scope.launch { GlobalSettingsStore.set(context, FLASH_CALL, true) }
+                        } else {
+                            callPermLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                        }
+                    },
                     onFlashSmsChange = { scope.launch { GlobalSettingsStore.set(context, FLASH_SMS, it) } },
                     onFlashNotifyChange = { scope.launch { GlobalSettingsStore.set(context, FLASH_NOTIFICATIONS, it) } }
                 )
