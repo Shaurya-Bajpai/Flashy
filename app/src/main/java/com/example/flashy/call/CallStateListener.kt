@@ -8,12 +8,14 @@ import android.telephony.PhoneStateListener
 import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
+import com.dsb.flashy.advance.isSystemDndActive
 import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
 import com.dsb.flashy.datastore.flashDataStore
@@ -71,6 +73,9 @@ class CallStateListener(
         if (!isGlobalEnabled || !isCallEnabled) return false
         if (screenOnly && isScreenOn()) return false
         if (ringerModeAllowed != "All" && ringerModeAllowed != currentRinger) return false
+
+        val respectSystemDnd = prefs[FLASH_RESPECT_SYSTEM_DND] ?: true
+        if (respectSystemDnd && isSystemDndActive(context)) return false
 
         return true
     }

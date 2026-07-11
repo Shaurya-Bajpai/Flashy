@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.dsb.flashy.R
+import com.dsb.flashy.screen.dashboard.items.AnimatedSwitch
 import com.dsb.flashy.ui.theme.ColorBattery
 import com.dsb.flashy.ui.theme.ColorDanger
 import com.dsb.flashy.ui.theme.TextDim
@@ -30,8 +32,10 @@ import com.dsb.flashy.ui.theme.TextWarm
 @Composable
 fun IntelligentBatteryCard(
     threshold: Float,
+    chargingCompleteFlash: Boolean,
     onThresholdChange: (Float) -> Unit,
-    onThresholdChangeFinished: () -> Unit
+    onThresholdChangeFinished: () -> Unit,
+    onChargingCompleteFlashChange: (Boolean) -> Unit,
 ) {
     val pct = (threshold * 100).toInt()
     val trackColor = when {
@@ -106,6 +110,19 @@ fun IntelligentBatteryCard(
                 Text("5%", style = MaterialTheme.typography.labelSmall, color = TextDim)
                 Text("30%", style = MaterialTheme.typography.labelSmall, color = TextDim)
             }
+
+            Spacer(Modifier.height(6.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+            Spacer(Modifier.height(6.dp))
+
+            AnimatedSwitch(
+                label = "Flash on Full Charge",
+                sublabel = "Flash 5 times when battery reaches 100%",
+                isEnabled = chargingCompleteFlash,
+                onToggle = onChargingCompleteFlashChange,
+                icon = painterResource(R.drawable.baseline_battery_full_24),
+                color = Color(0xFF86EFAC)
+            )
         }
     }
 }

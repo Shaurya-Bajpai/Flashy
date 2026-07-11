@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.dsb.flashy.R
+import com.dsb.flashy.screen.dashboard.items.AnimatedSwitch
 import com.dsb.flashy.screen.dashboard.items.TimeSelector
 import com.dsb.flashy.ui.theme.ColorSchedule
 import com.dsb.flashy.ui.theme.TextMuted
@@ -28,8 +30,10 @@ import com.dsb.flashy.ui.theme.TextWarm
 fun SmartScheduleCard(
     startTime: String,
     endTime: String,
+    respectSystemDnd: Boolean,
     onStartTimeChange: (String) -> Unit,
-    onEndTimeChange: (String) -> Unit
+    onEndTimeChange: (String) -> Unit,
+    onRespectSystemDndChange: (Boolean) -> Unit,
 ) {
     GlassMorphismCard {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -78,6 +82,19 @@ fun SmartScheduleCard(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            Spacer(Modifier.height(6.dp))
+            HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+            Spacer(Modifier.height(6.dp))
+
+            AnimatedSwitch(
+                label = "Respect System DND",
+                sublabel = "Silence flash when Android Do Not Disturb is on",
+                isEnabled = respectSystemDnd,
+                onToggle = onRespectSystemDndChange,
+                icon = painterResource(R.drawable.baseline_do_not_disturb_24),
+                color = ColorSchedule
+            )
         }
     }
 }
