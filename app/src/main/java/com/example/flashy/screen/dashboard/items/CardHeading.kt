@@ -1,4 +1,4 @@
-package com.example.flashy.screen.dashboard.items
+package com.dsb.flashy.screen.dashboard.items
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

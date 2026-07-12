@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
-import com.example.flashy.screen.dashboard.items.MainCardHeading
+import com.dsb.flashy.screen.dashboard.items.MainCardHeading
 
 @Composable
 fun IntelligentBatteryCard(

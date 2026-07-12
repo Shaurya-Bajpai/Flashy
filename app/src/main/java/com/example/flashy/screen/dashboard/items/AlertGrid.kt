@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 import com.dsb.flashy.screen.dashboard.items.card.AlertTypeCard
 import com.dsb.flashy.screen.dashboard.items.card.GlassMorphismCard
 import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
-import com.example.flashy.screen.dashboard.items.MainCardHeading
+import com.dsb.flashy.screen.dashboard.items.MainCardHeading
 
 @Composable
 fun AlertGrid(

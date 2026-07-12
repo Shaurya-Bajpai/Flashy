@@ -50,7 +50,7 @@ import com.dsb.flashy.ui.theme.ColorCall
 import com.dsb.flashy.ui.theme.ColorSms
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextWarm
-import com.example.flashy.screen.dashboard.items.MainCardHeading
+import com.dsb.flashy.screen.dashboard.items.MainCardHeading
 
 // Speed and count option descriptors — kept package-private to this file.
 private data class SpeedOption(val label: String, val ms: Int)

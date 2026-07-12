@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
 import com.dsb.flashy.screen.dash.items.ModeChip
-import com.example.flashy.screen.dashboard.items.MainCardHeading
+import com.dsb.flashy.screen.dashboard.items.MainCardHeading
 
 //import com.dsb.flashy.screen.dashboard.items.ModeChip
 
