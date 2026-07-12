@@ -1,7 +1,6 @@
 package com.dsb.flashy.screen.dashboard.items.card
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
@@ -70,8 +69,8 @@ import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
-
-private data class InstalledApp(val packageName: String, val name: String)
+import com.dsb.flashy.util.InstalledApp
+import com.dsb.flashy.util.InstalledAppsProvider
 
 private val BlockRed = Color(0xFFEF4444)
 
@@ -384,14 +383,7 @@ private fun AppPickerDialog(
 ) {
     var search by remember { mutableStateOf("") }
 
-    val allApps = remember {
-        val pm = context.packageManager
-        pm.getInstalledApplications(PackageManager.GET_META_DATA)
-            .filter { pm.getLaunchIntentForPackage(it.packageName) != null }
-            .filter { it.packageName != context.packageName }
-            .map { InstalledApp(it.packageName, pm.getApplicationLabel(it).toString()) }
-            .sortedBy { it.name.lowercase() }
-    }
+    val allApps = remember { InstalledAppsProvider.listLaunchableApps(context) }
 
     val filtered = remember(search) {
         if (search.isBlank()) allApps
