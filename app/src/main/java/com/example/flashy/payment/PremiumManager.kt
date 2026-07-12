@@ -2,6 +2,7 @@ package com.dsb.flashy.payment
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import com.dsb.flashy.BuildConfig
 import com.dsb.flashy.analytics.FlashyAnalytics
 import com.dsb.flashy.datastore.GlobalSettingsStore.IS_PREMIUM
 import com.dsb.flashy.datastore.GlobalSettingsStore.PAYMENT_ID
@@ -60,9 +61,9 @@ object PremiumManager {
     }
 
     // ── DEV ONLY — grants premium without payment for testing ─────────────────
-    // Call from a debug menu or adb shell; remove from prod builds via ProGuard
-    // or guard with BuildConfig.DEBUG.
+    // Call from a debug menu or adb shell. No-ops in release builds.
     suspend fun grantTestPremium(context: Context) {
+        if (!BuildConfig.DEBUG) return
         activate(context, "test_payment_${System.currentTimeMillis()}")
     }
 

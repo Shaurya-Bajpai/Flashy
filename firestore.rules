@@ -14,10 +14,30 @@ service cloud.firestore {
     // ── /payments/{paymentId} ────────────────────────────────────────────────
     // Written by the app only after a real Razorpay SDK callback.
     // Read is allowed so the app can verify a payment ID on restore-purchase.
-    // A forged payment ID (one not in Firestore) simply won't be found.
+    //
+    // No Firebase Auth is configured, so these rules cannot verify WHO is
+    // writing — only WHAT gets written. They block trivial forgery (wrong ID
+    // format, made-up fields) and block tampering with a record once it
+    // exists, but a client that already reverse-engineers the exact schema
+    // below could still fabricate a first-time record. Closing that fully
+    // requires server-side payment verification (e.g. a Cloud Function that
+    // checks the Razorpay signature) or App Check — not implemented here.
     match /payments/{paymentId} {
-      allow write: if true;   // app writes after successful payment
-      allow read:  if true;   // app reads to verify payment ID on restore
+      allow read: if true;   // app reads to verify payment ID on restore
+
+      // Only allow creating a brand-new record — never overwriting one that
+      // already exists — with exactly the fields the app actually writes.
+      allow create: if paymentId.matches('pay_[A-Za-z0-9]{14,20}')
+                    && request.resource.data.paymentId == paymentId
+                    && request.resource.data.appVersion is string
+                    && request.resource.data.androidVersion is int
+                    && request.resource.data.verifiedAt == request.time
+                    && request.resource.data.keys().hasOnly(
+                         ['paymentId', 'verifiedAt', 'appVersion', 'androidVersion']
+                       );
+
+      allow update: if false;  // a verified payment record is immutable
+      allow delete: if false;
     }
   }
 }
