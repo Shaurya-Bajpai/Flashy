@@ -37,9 +37,11 @@ import com.dsb.flashy.ui.theme.TextWarm
 fun IntelligentBatteryCard(
     threshold: Float,
     chargingCompleteFlash: Boolean,
+    lowBatteryAlert: Boolean,
     onThresholdChange: (Float) -> Unit,
     onThresholdChangeFinished: () -> Unit,
     onChargingCompleteFlashChange: (Boolean) -> Unit,
+    onLowBatteryAlertChange: (Boolean) -> Unit,
 ) {
     val pct = (threshold * 100).toInt()
     val trackColor = when {
@@ -102,6 +104,17 @@ fun IntelligentBatteryCard(
                 icon = painterResource(R.drawable.baseline_battery_full_24),
                 color = Color(0xFF86EFAC)
             )
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.07f), modifier = Modifier.padding(vertical = 8.dp))
+
+            AnimatedSwitch(
+                label = "Low Battery Alert",
+                sublabel = "Flash 3 times when battery reaches below",
+                isEnabled = lowBatteryAlert,
+                onToggle = onLowBatteryAlertChange,
+                icon = painterResource(R.drawable.baseline_battery_2_bar_24),
+                color = ColorDanger
+            )
         }
     }
 }
@@ -110,10 +123,12 @@ fun IntelligentBatteryCard(
 @Composable
 fun IntelligentBatteryCardPreview() {
     IntelligentBatteryCard(
-        threshold = 0.2f,
+        threshold = 0.15f,
         chargingCompleteFlash = true,
+        lowBatteryAlert = true,
         onThresholdChange = {},
         onThresholdChangeFinished = {},
         onChargingCompleteFlashChange = {},
+        onLowBatteryAlertChange = {}
     )
 }

@@ -50,10 +50,13 @@ object GlobalSettingsStore {
     // Each rule overrides the global Apps filter for that specific app
     val FLASH_APP_RULES = stringPreferencesKey("flash_app_rules")
 
+    // Feature 7: flash when battery drops to the Battery Guard threshold (off by default)
+    val FLASH_LOW_BATTERY_ALERT = booleanPreferencesKey("flash_low_battery_alert")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
-                FLASH_CHARGING_COMPLETE -> false   // opt-in
+                FLASH_CHARGING_COMPLETE, FLASH_LOW_BATTERY_ALERT -> false   // opt-in
                 else -> true
             }
         }

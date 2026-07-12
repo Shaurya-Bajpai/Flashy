@@ -32,6 +32,7 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_LOW_BATTERY_ALERT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
@@ -74,20 +75,40 @@ class FlashCallService : Service() {
             if (level < 0 || scale <= 0) return
 
             val pct = level * 100 / scale
-            val isAtFull = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+            val isCharging  = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL
+            val isDischarging = !isCharging
 
-            if (pct == 100 && isAtFull && prevBatteryPct in 0..99) {
+            // ── Charging complete: 99 → 100 while on charger ─────────────────
+            if (pct == 100 && isCharging && prevBatteryPct in 0..99) {
                 serviceScope.launch {
                     val prefs = context.flashDataStore.data.first()
-                    val globalOn   = prefs[FLASH_GLOBAL]            ?: true
-                    val featureOn  = prefs[FLASH_CHARGING_COMPLETE]  ?: false
+                    val globalOn = prefs[FLASH_GLOBAL] ?: true
+                    val featureOn = prefs[FLASH_CHARGING_COMPLETE] ?: false
                     if (globalOn && featureOn) {
                         Log.d("FlashService", "Battery full — triggering charging-complete flash")
                         flashController.blinkFlash(200L, 5)
                     }
                 }
             }
+
+            // ── Low battery alert: first crossing of the guard threshold downward ──
+            // Only fires once per discharge cycle (prevBatteryPct was above threshold).
+            if (prevBatteryPct > 0 && isDischarging) {
+                serviceScope.launch {
+                    val prefs     = context.flashDataStore.data.first()
+                    val threshold = prefs[FLASH_BATTERY_THRESHOLD] ?: 15
+                    if ((prefs[FLASH_GLOBAL] ?: true) &&
+                        (prefs[FLASH_LOW_BATTERY_ALERT] ?: false) &&
+                        pct <= threshold && prevBatteryPct > threshold
+                    ) {
+                        Log.d("FlashService", "Battery hit $pct% threshold — low-battery alert flash")
+                        // 3 slow blinks at 500 ms — distinct from normal notification flashes
+                        flashController.blinkFlash(500L, 3)
+                    }
+                }
+            }
+
             prevBatteryPct = pct
         }
     }

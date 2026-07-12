@@ -62,6 +62,7 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_LOW_BATTERY_ALERT
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
 import com.dsb.flashy.screen.dashboard.items.AnimatedBackground
@@ -126,6 +127,7 @@ fun FlashDashboardScreen(context: Context) {
     val appRulesJson by GlobalSettingsStore.getString(context, FLASH_APP_RULES).collectAsState(initial = "")
     val respectSystemDnd by GlobalSettingsStore.get(context, FLASH_RESPECT_SYSTEM_DND).collectAsState(initial = true)
     val chargingCompleteFlash by GlobalSettingsStore.get(context, FLASH_CHARGING_COMPLETE).collectAsState(initial = false)
+    val lowBatteryAlert by GlobalSettingsStore.get(context, FLASH_LOW_BATTERY_ALERT).collectAsState(initial = false)
 
     // Flash pattern settings
     val callCount    by GlobalSettingsStore.getInt(context, FLASH_CALL_COUNT).collectAsState(initial = 0)
@@ -241,12 +243,16 @@ fun FlashDashboardScreen(context: Context) {
                 IntelligentBatteryCard(
                     threshold = batterySlider / 100f,
                     chargingCompleteFlash = chargingCompleteFlash,
+                    lowBatteryAlert = lowBatteryAlert,
                     onThresholdChange = { batterySlider = it * 100f },
                     onThresholdChangeFinished = {
                         scope.launch { context.flashDataStore.edit { it[FLASH_BATTERY_THRESHOLD] = batterySlider.toInt() } }
                     },
                     onChargingCompleteFlashChange = { v ->
                         scope.launch { GlobalSettingsStore.set(context, FLASH_CHARGING_COMPLETE, v) }
+                    },
+                    onLowBatteryAlertChange = { v ->
+                        scope.launch { GlobalSettingsStore.set(context, FLASH_LOW_BATTERY_ALERT, v) }
                     }
                 )
             }
