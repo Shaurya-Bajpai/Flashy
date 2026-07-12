@@ -22,13 +22,19 @@ import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.call.CallStateListener
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
 import com.dsb.flashy.datastore.flashDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -113,15 +119,36 @@ class FlashCallService : Service() {
             Log.d("FlashService", "Battery $currentBattery% < $batteryThreshold%, skipping flash")
             return
         }
+
+        val callCount    = prefs[FLASH_CALL_COUNT]     ?: 0    // 0 = continuous
+        val callSpeedMs  = (prefs[FLASH_CALL_SPEED_MS]  ?: 200).toLong()
+        val smsCount     = prefs[FLASH_SMS_COUNT]       ?: 5
+        val smsSpeedMs   = (prefs[FLASH_SMS_SPEED_MS]   ?: 200).toLong()
+        val notifCount   = prefs[FLASH_NOTIF_COUNT]     ?: 5
+        val notifSpeedMs = (prefs[FLASH_NOTIF_SPEED_MS] ?: 200).toLong()
+
         when (eventType) {
-            "CALL" -> if (isCallEnabled) flashController.blinkFlash(200)
-            "SMS" -> if (isSmsEnabled) flashController.blinkFlash(200)
-            "NOTIF" -> if (isNotifEnabled) flashController.blinkFlash(200)
+            "CALL" -> if (isCallEnabled) {
+                if (callCount == 0) flashController.blinkFlashIndefinitely(callSpeedMs)
+                else flashController.blinkFlash(callSpeedMs, callCount)
+            }
+            "SMS" -> if (isSmsEnabled) flashController.blinkFlash(smsSpeedMs,   smsCount)
+            "NOTIF" -> if (isNotifEnabled) flashController.blinkFlash(notifSpeedMs, notifCount)
         }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            flashController.stopBlinking()
-        }, 2000)
+        // Auto-stop after the blink sequence finishes.
+        // For continuous call flash, CallStateListener stops it when the call ends.
+        if (eventType != "CALL" || callCount != 0) {
+            val stopAfterMs = when (eventType) {
+                "CALL"  -> callCount  * 2 * callSpeedMs  + 500L
+                "SMS"   -> smsCount   * 2 * smsSpeedMs   + 500L
+                "NOTIF" -> notifCount * 2 * notifSpeedMs + 500L
+                else    -> 2000L
+            }
+            Handler(Looper.getMainLooper()).postDelayed({
+                flashController.stopBlinking()
+            }, stopAfterMs)
+        }
     }
 
 
