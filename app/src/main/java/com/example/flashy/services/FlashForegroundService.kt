@@ -32,7 +32,6 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
 import com.dsb.flashy.datastore.flashDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
@@ -79,7 +78,7 @@ class FlashCallService : Service() {
 
     override fun onDestroy() {
         callListener.unregister()
-        flashController.stopBlinking()
+        flashController.release()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -131,9 +130,11 @@ class FlashCallService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Flash Call Alert Service",
+                getString(R.string.notif_channel_name),
                 NotificationManager.IMPORTANCE_LOW
-            )
+            ).apply {
+                description = getString(R.string.notif_channel_desc)
+            }
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
         }
@@ -141,9 +142,9 @@ class FlashCallService : Service() {
 
     private fun createNotification(): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Flash Alert Active")
-            .setContentText("Managing incoming call, SMS, and app notifications")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(getString(R.string.notif_title))
+            .setContentText(getString(R.string.notif_text))
+            .setSmallIcon(R.drawable.baseline_flash_on_24)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()

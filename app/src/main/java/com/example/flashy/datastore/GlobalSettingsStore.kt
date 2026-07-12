@@ -47,7 +47,10 @@ object GlobalSettingsStore {
 
     fun getInt(context: Context, key: Preferences.Key<Int>): Flow<Int> {
         return context.flashDataStore.data.map { prefs ->
-            prefs[key] ?: 0
+            prefs[key] ?: when (key) {
+                FLASH_BATTERY_THRESHOLD -> 15
+                else -> 0
+            }
         }
     }
 

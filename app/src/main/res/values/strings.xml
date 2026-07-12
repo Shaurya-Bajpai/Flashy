@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Flashy</string>
+
+    <!-- Foreground service notification -->
+    <string name="notif_channel_name">Flash Alert Service</string>
+    <string name="notif_channel_desc">Keeps flash alerts running in the background</string>
+    <string name="notif_title">Flash Alerts Active</string>
+    <string name="notif_text">Watching for calls, SMS, and app notifications</string>
+
+    <!-- Permission dialog -->
+    <string name="perm_dialog_title">Notification Access Required</string>
+    <string name="perm_dialog_body">Flashy needs Notification Access to flash your camera light when you receive messages. Tap Open Settings, find Flashy in the list, and enable the toggle.</string>
+    <string name="perm_dialog_open_settings">Open Settings</string>
+    <string name="perm_dialog_exit">Exit</string>
 </resources>

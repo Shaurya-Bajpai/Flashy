@@ -3,48 +3,49 @@ package com.dsb.flashy.managers
 import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import kotlinx.coroutines.*
+import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class FlashController(private val context: Context) {
-    private var cameraManager: CameraManager =
+    private val cameraManager: CameraManager =
         context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    private var cameraId: String? = null
+    private val cameraId: String? = findFlashCamera()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var blinkJob: Job? = null
 
-    init {
-        try {
-            cameraId = cameraManager.cameraIdList.firstOrNull { id ->
-                cameraManager.getCameraCharacteristics(id)
-                    .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+    private fun findFlashCamera(): String? = try {
+        cameraManager.cameraIdList.firstOrNull { id ->
+            cameraManager.getCameraCharacteristics(id)
+                .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
         }
+    } catch (e: Exception) {
+        Log.e("FlashController", "Failed to find flash camera", e)
+        null
     }
 
-    fun turnOn() {
-        try {
-            cameraId?.let {
-                cameraManager.setTorchMode(it, true)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+    fun turnOn() = setTorch(true)
+    fun turnOff() = setTorch(false)
 
-    fun turnOff() {
+    private fun setTorch(on: Boolean) {
+        val id = cameraId ?: return
         try {
-            cameraId?.let {
-                cameraManager.setTorchMode(it, false)
-            }
+            cameraManager.setTorchMode(id, on)
         } catch (e: Exception) {
+            Log.e("FlashController", "setTorchMode($on) failed", e)
             e.printStackTrace()
         }
     }
 
     fun blinkFlashIndefinitely(speedMs: Long = 300L) {
         blinkJob?.cancel()
-        blinkJob = CoroutineScope(Dispatchers.Default).launch {
+        blinkJob = scope.launch {
             try {
                 while (isActive) {
                     turnOn()
@@ -54,13 +55,15 @@ class FlashController(private val context: Context) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                turnOff()
             }
         }
     }
 
     fun blinkFlash(speedMs: Long = 300L, repeatCount: Int = 2) {
         blinkJob?.cancel()
-        blinkJob = CoroutineScope(Dispatchers.Default).launch {
+        blinkJob = scope.launch {
             try {
                 repeat(repeatCount) {
                     turnOn()
@@ -70,6 +73,8 @@ class FlashController(private val context: Context) {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                turnOff()
             }
         }
     }
@@ -78,5 +83,11 @@ class FlashController(private val context: Context) {
         blinkJob?.cancel()
         blinkJob = null
         turnOff()
+    }
+
+    /** Call this when the owning Service is destroyed. */
+    fun release() {
+        stopBlinking()
+        scope.cancel()
     }
 }

@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun NotificationPermissionDialog() {
+fun NotificationPermissionDialog(onExit: () -> Unit = {}) {
     val context = LocalContext.current
 
     AlertDialog(
@@ -19,15 +19,21 @@ fun NotificationPermissionDialog() {
                 val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                 context.startActivity(intent)
             }) {
-                Text("Go to Settings")
+                Text("Open Settings")
             }
         },
-        title = { Text("Enable Notification Access") },
+        title = { Text("Notification Access Required") },
         text = {
             Text(
-                "To receive flash alerts for WhatsApp, Messages, and other apps, you need to enable Notification Access for Flashy.\n\nPlease tap 'Go to Settings' and enable Flashy in the list."
+                "Flashora needs Notification Access to flash your camera light when you receive " +
+                        "messages from any app.\n\nTap \"Open Settings\", find Flashora in the list, " +
+                        "and enable the toggle. Then return to the app."
             )
         },
-        dismissButton = {}
+        dismissButton = {
+            TextButton(onClick = onExit) {
+                Text("Exit")
+            }
+        }
     )
 }

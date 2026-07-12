@@ -11,7 +11,6 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,80 +22,48 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.dsb.flashy.call.CallStateListener
-import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.notification.NotificationPermissionDialog
 import com.dsb.flashy.screen.FlashyIntroScreen
 import com.dsb.flashy.screen.dashboard.FlashDashboardScreen
 import com.dsb.flashy.services.FlashCallService
+import com.dsb.flashy.ui.theme.FlashyTheme
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
-    private lateinit var callListener: CallStateListener
-    private lateinit var flashController: FlashController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize flash and listener immediately
-        flashController = FlashController(this)
-        callListener = CallStateListener(this, flashController)
-        callListener.register()
-
-        // Start the foreground service ONCE, without triggering flashlight
-        // Request permissions first
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.CAMERA,
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.POST_NOTIFICATIONS
-            ),
-            101
-        )
-
-        // Start service only if permissions are granted
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed({
-            if (allPermissionsGranted()) {
-                val serviceIntent = Intent(this, FlashCallService::class.java).apply {
-                    putExtra("eventType", "INIT")
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(serviceIntent)
-                } else {
-                    startService(serviceIntent)
-                }
+        // Request only actual runtime permissions — BIND_NOTIFICATION_LISTENER_SERVICE
+        // is a special permission granted through system settings, not here.
+        val runtimePermissions = buildList {
+            add(Manifest.permission.CAMERA)
+            add(Manifest.permission.READ_PHONE_STATE)
+            add(Manifest.permission.RECEIVE_SMS)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
             }
-        }, 1000)
-        // Small delay to allow permission dialog to complete
+        }.toTypedArray()
 
-        // Request runtime permissions if not granted
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.CAMERA,
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.POST_NOTIFICATIONS,
-                Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE,
-            ),
-            101
-        )
+        ActivityCompat.requestPermissions(this, runtimePermissions, 101)
+
+        // Start the foreground service after the permission dialog has had a moment
+        // to be acted on. The service itself guards against running without CAMERA.
+        Handler(Looper.getMainLooper()).postDelayed({ startFlashService() }, 1500)
 
         setContent {
             val context = LocalContext.current
             var notificationPermissionGranted by remember { mutableStateOf(isNotificationServiceEnabled(context)) }
 
+            // Poll until notification listener access is granted.
+            // There is no broadcast for this grant — polling is the standard approach.
             LaunchedEffect(Unit) {
-                // Monitor the permission after user returns from settings
                 while (!notificationPermissionGranted) {
                     delay(1000)
                     notificationPermissionGranted = isNotificationServiceEnabled(context)
                 }
             }
 
-            MaterialTheme {
+            FlashyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (notificationPermissionGranted) {
                         FlashyIntroScreen(
@@ -108,25 +75,28 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     } else {
-                        NotificationPermissionDialog()
+                        NotificationPermissionDialog(onExit = { finish() })
                     }
                 }
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        callListener.unregister()
-    }
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED
+    private fun startFlashService() {
+        if (!hasPermission(Manifest.permission.CAMERA)) return
+        val intent = Intent(this, FlashCallService::class.java).apply {
+            putExtra("eventType", "INIT")
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 
-    private fun isNotificationServiceEnabled(context: Context): Boolean {
-        val enabledPackages = NotificationManagerCompat.getEnabledListenerPackages(context)
-        return enabledPackages.contains(context.packageName)
-    }
+    private fun hasPermission(permission: String) =
+        ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+
+    private fun isNotificationServiceEnabled(context: Context): Boolean =
+        NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
 }
