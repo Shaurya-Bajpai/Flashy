@@ -109,11 +109,11 @@ fun SoundReactiveCard(
         )
     }
 
-    GlassMorphismCard(accentGlow = if (enabled) ColorSoundReactive.copy(alpha = 0.08f) else Color.Transparent) {
+    GlassMorphismCard(accentColor = if (enabled) ColorSoundReactive else Color.Transparent) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    painter = painterResource(R.drawable.baseline_volume_up_24),
+                    painter = painterResource(R.drawable.baseline_mic_24),
                     contentDescription = null,
                     tint = ColorSoundReactive,
                     modifier = Modifier.size(18.dp)
@@ -140,7 +140,7 @@ fun SoundReactiveCard(
                 sublabel = "Uses microphone · may increase battery usage",
                 isEnabled = enabled,
                 onToggle = handleToggle,
-                icon = painterResource(R.drawable.baseline_volume_up_24),
+                icon = painterResource(R.drawable.baseline_mic_24),
                 color = ColorSoundReactive
             )
 

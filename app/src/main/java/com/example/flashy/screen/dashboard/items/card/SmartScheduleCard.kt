@@ -35,7 +35,7 @@ fun SmartScheduleCard(
     onEndTimeChange: (String) -> Unit,
     onRespectSystemDndChange: (Boolean) -> Unit,
 ) {
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = ColorSchedule) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(

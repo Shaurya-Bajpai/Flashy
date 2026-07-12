@@ -66,6 +66,7 @@ import com.dsb.flashy.model.AppFlashRule
 import com.dsb.flashy.model.toAppRuleList
 import com.dsb.flashy.model.toJsonString
 import com.dsb.flashy.ui.theme.Amber
+import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
@@ -83,7 +84,7 @@ fun AppFilterCard(
     val rules = remember(appRulesJson) { appRulesJson.toAppRuleList() }
     var showPicker by remember { mutableStateOf(false) }
 
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = ColorApp) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)

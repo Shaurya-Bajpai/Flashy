@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -24,7 +23,7 @@ import com.dsb.flashy.ui.theme.GlassSurfaceMid
 @Composable
 fun GlassMorphismCard(
     modifier: Modifier = Modifier,
-    accentGlow: Color = Color.Transparent,
+    accentColor: Color = Color.Transparent,
     cornerRadius: Dp = 20.dp,
     content: @Composable () -> Unit
 ) {
@@ -32,17 +31,6 @@ fun GlassMorphismCard(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .then(
-                if (accentGlow != Color.Transparent) {
-                    Modifier.drawBehind {
-                        drawCircle(
-                            color = accentGlow.copy(alpha = 0.18f),
-                            radius = size.maxDimension * 0.55f,
-                            center = Offset(size.width / 2f, size.height / 2f)
-                        )
-                    }
-                } else Modifier
-            )
             .clip(shape)
             .background(
                 brush = Brush.linearGradient(
@@ -62,7 +50,7 @@ fun GlassMorphismCard(
             )
             .drawWithContent {
                 drawContent()
-                // Inner top-edge highlight — simulates frosted glass light reflection
+                // Frosted glass top-edge light reflection
                 drawRect(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
@@ -76,8 +64,24 @@ fun GlassMorphismCard(
                     topLeft = Offset(0f, 0f),
                     size = Size(size.width, 1.5.dp.toPx())
                 )
+                // Thin left-edge feature-color accent bar — clean identity without bloating layout
+                if (accentColor != Color.Transparent) {
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                accentColor.copy(alpha = 0.85f),
+                                accentColor.copy(alpha = 0.85f),
+                                Color.Transparent
+                            ),
+                            startY = size.height * 0.08f,
+                            endY = size.height * 0.92f
+                        ),
+                        topLeft = Offset(0f, 0f),
+                        size = Size(3.dp.toPx(), size.height)
+                    )
+                }
             }
-            .then(modifier)
     ) {
         content()
     }

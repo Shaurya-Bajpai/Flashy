@@ -75,7 +75,7 @@ fun ContactFilterCard(
     onNotifFilterModeChange: (String) -> Unit,
     onNotifContactsChange: (String) -> Unit,
 ) {
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = ColorSms) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)

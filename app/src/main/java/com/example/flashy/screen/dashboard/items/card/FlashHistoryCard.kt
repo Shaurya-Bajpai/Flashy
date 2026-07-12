@@ -53,7 +53,7 @@ fun FlashHistoryCard(
 ) {
     var expanded by remember { mutableStateOf(true) }
 
-    GlassMorphismCard(accentGlow = Color(0xFF818CF8).copy(alpha = 0.05f)) {
+    GlassMorphismCard(accentColor = Color(0xFF818CF8)) {
         Column(modifier = Modifier.padding(20.dp)) {
             // ── Header ──────────────────────────────────────────────────
             Row(

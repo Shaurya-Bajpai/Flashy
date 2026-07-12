@@ -33,7 +33,7 @@ import com.dsb.flashy.ui.theme.TextWarm
 
 @Composable
 fun QuickAccessCard(onSettingsClick: () -> Unit) {
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = Amber) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(

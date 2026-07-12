@@ -26,7 +26,7 @@ fun MasterControlCard(
     onFlashGlobalChange: (Boolean) -> Unit,
     onFlashScreenOffOnlyChange: (Boolean) -> Unit
 ) {
-    GlassMorphismCard(accentGlow = if (flashGlobal) Amber else Color.Transparent) {
+    GlassMorphismCard(accentColor = if (flashGlobal) Amber else Color.Transparent) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "Master Control",

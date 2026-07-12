@@ -38,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
+import com.dsb.flashy.ui.theme.Amber
 import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.ColorCall
 import com.dsb.flashy.ui.theme.ColorSms
@@ -83,22 +84,32 @@ fun FlashPatternCard(
     onNotifCountChange: (Int) -> Unit,
     onNotifSpeedChange: (Int) -> Unit,
 ) {
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = Amber) {
         Column(
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            Text(
-                text = "Flash Pattern",
-                style = MaterialTheme.typography.titleLarge,
-                color = TextWarm
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = "Customize speed and count per alert type",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextMuted
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(R.drawable.baseline_flash_on_24),
+                    contentDescription = null,
+                    tint = Amber,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = "Flash Pattern",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = TextWarm
+                    )
+                    Text(
+                        text = "Customize speed and count per alert type",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                }
+            }
             Spacer(Modifier.height(20.dp))
 
             // ── Calls ────────────────────────────────────────────────────────

@@ -14,9 +14,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -89,6 +94,11 @@ import com.dsb.flashy.screen.dashboard.items.card.IntelligentBatteryCard
 import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
 import com.dsb.flashy.screen.dashboard.items.card.QuickAccessCard
 import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
+import com.dsb.flashy.ui.theme.Amber
+import com.dsb.flashy.ui.theme.ColorApp
+import com.dsb.flashy.ui.theme.ColorBattery
+import com.dsb.flashy.ui.theme.ColorCall
+import com.dsb.flashy.ui.theme.ColorSchedule
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.util.updateFlashShortcut
 import com.dsb.flashy.widget.FlashToggleWidget
@@ -230,7 +240,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── MASTER CONTROL ────────────────────────────────────────────────
-            item(key = "sec_master") { SectionLabel("MASTER CONTROL") }
+            item(key = "sec_master") { SectionLabel("MASTER CONTROL", Amber) }
             item(key = "master_card") {
                 MasterControlCard(
                     flashGlobal = flashGlobal,
@@ -247,7 +257,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── ALERT TRIGGERS ────────────────────────────────────────────────
-            item(key = "sec_alerts") { SectionLabel("ALERT TRIGGERS") }
+            item(key = "sec_alerts") { SectionLabel("ALERT TRIGGERS", ColorCall) }
             item(key = "alert_grid") {
                 AlertGrid(
                     flashCall = flashCall,
@@ -271,7 +281,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── SMART BEHAVIOR ────────────────────────────────────────────────
-            item(key = "sec_behavior") { SectionLabel("SMART BEHAVIOR") }
+            item(key = "sec_behavior") { SectionLabel("SMART BEHAVIOR", ColorSchedule) }
             item(key = "schedule_card") {
                 SmartScheduleCard(
                     startTime = flashDndStart,
@@ -298,7 +308,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── BATTERY ───────────────────────────────────────────────────────
-            item(key = "sec_battery") { SectionLabel("BATTERY") }
+            item(key = "sec_battery") { SectionLabel("BATTERY", ColorBattery) }
             item(key = "battery_card") {
                 IntelligentBatteryCard(
                     threshold = batterySlider / 100f,
@@ -320,7 +330,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── ADVANCED ──────────────────────────────────────────────────────
-            item(key = "sec_advanced") { SectionLabel("ADVANCED") }
+            item(key = "sec_advanced") { SectionLabel("ADVANCED", Color(0xFF7C3AED)) }
             item(key = "sound_card") {
                 SoundReactiveCard(
                     enabled = soundReactive,
@@ -363,7 +373,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── FILTERING ─────────────────────────────────────────────────────
-            item(key = "sec_filtering") { SectionLabel("FILTERING") }
+            item(key = "sec_filtering") { SectionLabel("FILTERING", ColorApp) }
             item(key = "contact_card") {
                 ContactFilterCard(
                     callFilterMode   = callFilterMode,
@@ -389,7 +399,7 @@ fun FlashDashboardScreen(context: Context) {
             }
 
             // ── HISTORY & SETTINGS ────────────────────────────────────────────
-            item(key = "sec_history") { SectionLabel("HISTORY & SETTINGS") }
+            item(key = "sec_history") { SectionLabel("HISTORY & SETTINGS", Color(0xFF818CF8)) }
             item(key = "history_card") {
                 FlashHistoryCard(
                     events = flashHistoryJson.toFlashHistoryList(),
@@ -426,14 +436,30 @@ fun FlashDashboardScreen(context: Context) {
 }
 
 @Composable
-private fun SectionLabel(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.labelSmall.copy(
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.5.sp,
-        ),
-        color = TextDim,
-        modifier = Modifier.padding(start = 2.dp, top = 6.dp, bottom = 0.dp)
-    )
+private fun SectionLabel(title: String, accent: Color = TextDim) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 2.dp, top = 10.dp, bottom = 2.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(12.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(accent, accent.copy(alpha = 0.15f))
+                    ),
+                    shape = RoundedCornerShape(2.dp)
+                )
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
+            ),
+            color = accent.copy(alpha = 0.72f)
+        )
+    }
 }

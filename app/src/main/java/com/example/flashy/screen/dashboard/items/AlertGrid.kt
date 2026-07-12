@@ -33,7 +33,7 @@ fun AlertGrid(
     onFlashSmsChange: (Boolean) -> Unit,
     onFlashNotifyChange: (Boolean) -> Unit
 ) {
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = ColorCall) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "Alert Triggers",

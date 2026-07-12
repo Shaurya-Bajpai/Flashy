@@ -47,7 +47,7 @@ fun IntelligentBatteryCard(
     }
     val batteryRes = if (pct < 15) R.drawable.baseline_battery_2_bar_24 else R.drawable.baseline_battery_full_24
 
-    GlassMorphismCard(accentGlow = trackColor.copy(alpha = 0.05f)) {
+    GlassMorphismCard(accentColor = trackColor) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

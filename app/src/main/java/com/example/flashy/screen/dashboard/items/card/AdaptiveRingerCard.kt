@@ -49,7 +49,7 @@ fun AdaptiveRingerCard(
         RingerMode("Silent", "Silent", R.drawable.baseline_volume_off_24)
     )
 
-    GlassMorphismCard {
+    GlassMorphismCard(accentColor = Amber) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "Ringer Mode",
