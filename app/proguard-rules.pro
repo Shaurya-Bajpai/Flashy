@@ -47,6 +47,28 @@
 -keep class androidx.datastore.** { *; }
 -keepclassmembers class androidx.datastore.** { *; }
 
+# ── Razorpay SDK ─────────────────────────────────────────────────────────────
+# Razorpay uses reflection and WebView to process payments.
+-keepclassmembers class * implements com.razorpay.PaymentResultListener {
+    public <methods>;
+}
+-keepclassmembers class * implements com.razorpay.PaymentResultWithDataListener {
+    public <methods>;
+}
+-keep class com.razorpay.** { *; }
+-keep class com.razorpay.PaymentResultListener
+-dontwarn com.razorpay.**
+-keep class org.json.** { *; }
+-dontwarn org.json.**
+# Razorpay internally uses OkHttp and ProGuard may strip HTTP client classes
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+# PremiumManager and PremiumActivity must survive minification
+-keep class com.dsb.flashy.payment.** { *; }
+-keep class com.dsb.flashy.screen.premium.** { *; }
+
 # ── Suppress known-safe warnings ──────────────────────────────────────────────
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**

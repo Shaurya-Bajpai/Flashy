@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import com.dsb.flashy.R
 import com.dsb.flashy.datastore.GlobalSettingsStore
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
@@ -77,6 +78,7 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_LOW_BATTERY_ALERT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_HISTORY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_REACTIVE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_SENSITIVITY
+import com.dsb.flashy.datastore.GlobalSettingsStore.IS_PREMIUM
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.model.toFlashHistoryList
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
@@ -89,7 +91,9 @@ import com.dsb.flashy.screen.dashboard.items.card.FlashHistoryCard
 import com.dsb.flashy.screen.dashboard.items.card.AppFilterCard
 import com.dsb.flashy.screen.dashboard.items.card.ContactFilterCard
 import com.dsb.flashy.screen.dashboard.items.card.FlashPatternCard
+import com.dsb.flashy.screen.dashboard.items.card.PremiumGate
 import com.dsb.flashy.screen.dashboard.items.card.SoundReactiveCard
+import com.dsb.flashy.screen.premium.PremiumActivity
 import com.dsb.flashy.screen.dashboard.items.card.IntelligentBatteryCard
 import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
 import com.dsb.flashy.screen.dashboard.items.card.QuickAccessCard
@@ -143,6 +147,7 @@ fun FlashDashboardScreen(context: Context) {
     val notifSpeedMs          = prefs[FLASH_NOTIF_SPEED_MS]      ?: 200
     val batteryThreshold      = prefs[FLASH_BATTERY_THRESHOLD]   ?: 15
     val ringerMode            = prefs[FLASH_RINGER_MODE]         ?: "All"
+    val isPremium             = prefs[IS_PREMIUM]                ?: false
 
     var batterySlider by remember { mutableFloatStateOf(batteryThreshold.toFloat()) }
     var showPulse by remember { mutableStateOf(true) }
@@ -219,7 +224,7 @@ fun FlashDashboardScreen(context: Context) {
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item(key = "header") { PremiumHeader(showPulse, flashGlobal) }
+            item(key = "header") { PremiumHeader(showPulse, flashGlobal, isPremium) }
 
             if (!flashGlobal) {
                 item(key = "status_alert") { StatusAlert() }
@@ -332,70 +337,106 @@ fun FlashDashboardScreen(context: Context) {
             // ── ADVANCED ──────────────────────────────────────────────────────
             item(key = "sec_advanced") { SectionLabel("ADVANCED", Color(0xFF7C3AED)) }
             item(key = "sound_card") {
-                SoundReactiveCard(
-                    enabled = soundReactive,
-                    sensitivity = soundSensitivitySlider,
-                    onEnabledChange = { enabled ->
-                        if (!enabled) {
-                            scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, false) }
-                        } else if (ContextCompat.checkSelfPermission(
-                                context, Manifest.permission.RECORD_AUDIO
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, true) }
-                        } else {
-                            soundReactiveLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                PremiumGate(
+                    isPremium = isPremium,
+                    featureName = "Sound Reactive Flash",
+                    featureIconRes = R.drawable.baseline_mic_24,
+                    featureDescription = "Flash syncs with music beats and ambient audio",
+                    accentColor = Color(0xFF7C3AED),
+                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                ) {
+                    SoundReactiveCard(
+                        enabled = soundReactive,
+                        sensitivity = soundSensitivitySlider,
+                        onEnabledChange = { enabled ->
+                            if (!enabled) {
+                                scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, false) }
+                            } else if (ContextCompat.checkSelfPermission(
+                                    context, Manifest.permission.RECORD_AUDIO
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, true) }
+                            } else {
+                                soundReactiveLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        },
+                        onSensitivityChange = { soundSensitivitySlider = it },
+                        onSensitivityChangeFinished = {
+                            scope.launch {
+                                context.flashDataStore.edit { it[FLASH_SOUND_SENSITIVITY] = soundSensitivitySlider }
+                            }
                         }
-                    },
-                    onSensitivityChange = { soundSensitivitySlider = it },
-                    onSensitivityChangeFinished = {
-                        scope.launch {
-                            context.flashDataStore.edit { it[FLASH_SOUND_SENSITIVITY] = soundSensitivitySlider }
-                        }
-                    }
-                )
+                    )
+                }
             }
             item(key = "pattern_card") {
-                FlashPatternCard(
-                    callCount    = callCount,
-                    callSpeedMs  = callSpeedMs,
-                    smsCount     = smsCount,
-                    smsSpeedMs   = smsSpeedMs,
-                    notifCount   = notifCount,
-                    notifSpeedMs = notifSpeedMs,
-                    onCallCountChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_COUNT]     = v } } },
-                    onCallSpeedChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_SPEED_MS]  = v } } },
-                    onSmsCountChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_COUNT]      = v } } },
-                    onSmsSpeedChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_SPEED_MS]   = v } } },
-                    onNotifCountChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_COUNT]    = v } } },
-                    onNotifSpeedChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_SPEED_MS] = v } } },
-                )
+                PremiumGate(
+                    isPremium = isPremium,
+                    featureName = "Flash Pattern",
+                    featureIconRes = R.drawable.baseline_flash_on_24,
+                    featureDescription = "Customize blink speed and count per alert type",
+                    accentColor = Amber,
+                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                ) {
+                    FlashPatternCard(
+                        callCount    = callCount,
+                        callSpeedMs  = callSpeedMs,
+                        smsCount     = smsCount,
+                        smsSpeedMs   = smsSpeedMs,
+                        notifCount   = notifCount,
+                        notifSpeedMs = notifSpeedMs,
+                        onCallCountChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_COUNT]     = v } } },
+                        onCallSpeedChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_SPEED_MS]  = v } } },
+                        onSmsCountChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_COUNT]      = v } } },
+                        onSmsSpeedChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_SPEED_MS]   = v } } },
+                        onNotifCountChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_COUNT]    = v } } },
+                        onNotifSpeedChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_SPEED_MS] = v } } },
+                    )
+                }
             }
 
             // ── FILTERING ─────────────────────────────────────────────────────
             item(key = "sec_filtering") { SectionLabel("FILTERING", ColorApp) }
             item(key = "contact_card") {
-                ContactFilterCard(
-                    callFilterMode   = callFilterMode,
-                    callContacts     = callContacts,
-                    smsFilterMode    = smsFilterMode,
-                    smsContacts      = smsContacts,
-                    notifFilterMode  = notifFilterMode,
-                    notifContacts    = notifContacts,
-                    onCallFilterModeChange  = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_FILTER_MODE,  v) } },
-                    onCallContactsChange    = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_CONTACTS,     v) } },
-                    onSmsFilterModeChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_FILTER_MODE,   v) } },
-                    onSmsContactsChange     = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_CONTACTS,      v) } },
-                    onNotifFilterModeChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_FILTER_MODE, v) } },
-                    onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
-                )
+                PremiumGate(
+                    isPremium = isPremium,
+                    featureName = "Contact Filter",
+                    featureIconRes = R.drawable.baseline_sms_24,
+                    featureDescription = "Flash only when specific people reach you",
+                    accentColor = ColorApp,
+                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                ) {
+                    ContactFilterCard(
+                        callFilterMode   = callFilterMode,
+                        callContacts     = callContacts,
+                        smsFilterMode    = smsFilterMode,
+                        smsContacts      = smsContacts,
+                        notifFilterMode  = notifFilterMode,
+                        notifContacts    = notifContacts,
+                        onCallFilterModeChange  = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_FILTER_MODE,  v) } },
+                        onCallContactsChange    = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_CONTACTS,     v) } },
+                        onSmsFilterModeChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_FILTER_MODE,   v) } },
+                        onSmsContactsChange     = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_CONTACTS,      v) } },
+                        onNotifFilterModeChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_FILTER_MODE, v) } },
+                        onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
+                    )
+                }
             }
             item(key = "app_filter_card") {
-                AppFilterCard(
-                    context = context,
-                    appRulesJson = appRulesJson,
-                    onAppRulesChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_APP_RULES, v) } }
-                )
+                PremiumGate(
+                    isPremium = isPremium,
+                    featureName = "Per-App Rules",
+                    featureIconRes = R.drawable.baseline_notifications_active_24,
+                    featureDescription = "Block or customize flash behavior per installed app",
+                    accentColor = ColorApp,
+                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                ) {
+                    AppFilterCard(
+                        context = context,
+                        appRulesJson = appRulesJson,
+                        onAppRulesChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_APP_RULES, v) } }
+                    )
+                }
             }
 
             // ── HISTORY & SETTINGS ────────────────────────────────────────────

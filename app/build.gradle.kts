@@ -30,6 +30,8 @@ android {
             resValue("string", "app_name", "Flashy Dev")
             buildConfigField("String", "ENVIRONMENT", "\"dev\"")
             buildConfigField("Boolean", "ENABLE_LOGGING", "true")
+            // Replace with your Razorpay TEST key from https://dashboard.razorpay.com/app/keys
+            buildConfigField("String", "RAZORPAY_KEY_ID", "\"rzp_test_ENTER_YOUR_TEST_KEY_HERE\"")
         }
 
         create("stage") {
@@ -39,6 +41,8 @@ android {
             resValue("string", "app_name", "Flashy Stage")
             buildConfigField("String", "ENVIRONMENT", "\"stage\"")
             buildConfigField("Boolean", "ENABLE_LOGGING", "true")
+            // Replace with your Razorpay TEST key from https://dashboard.razorpay.com/app/keys
+            buildConfigField("String", "RAZORPAY_KEY_ID", "\"rzp_test_ENTER_YOUR_TEST_KEY_HERE\"")
         }
 
         create("prod") {
@@ -46,6 +50,8 @@ android {
             resValue("string", "app_name", "Flashy")
             buildConfigField("String", "ENVIRONMENT", "\"prod\"")
             buildConfigField("Boolean", "ENABLE_LOGGING", "false")
+            // Replace with your Razorpay LIVE key from https://dashboard.razorpay.com/app/keys
+            buildConfigField("String", "RAZORPAY_KEY_ID", "\"rzp_live_ENTER_YOUR_LIVE_KEY_HERE\"")
         }
     }
 
@@ -76,6 +82,9 @@ android {
 }
 
 dependencies {
+
+    // Razorpay payment SDK
+    implementation("com.razorpay:checkout:1.6.41")
 
     // Firebase dependencies
     implementation(platform(libs.firebase.bom))

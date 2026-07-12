@@ -56,12 +56,14 @@ import com.dsb.flashy.ui.theme.ColorDanger
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun PremiumHeader(showPulse: Boolean, flashGlobal: Boolean) {
+fun PremiumHeader(showPulse: Boolean, flashGlobal: Boolean, isPremium: Boolean = false) {
     val context = LocalContext.current
     val cameraManager = remember { context.getSystemService(Context.CAMERA_SERVICE) as CameraManager }
     val cameraId = remember { cameraManager.cameraIdList.firstOrNull() }
@@ -126,6 +128,37 @@ fun PremiumHeader(showPulse: Boolean, flashGlobal: Boolean) {
                 color = if (flashGlobal) ColorCall else ColorDanger,
                 letterSpacing = 1.8.sp
             )
+        }
+
+        // Premium badge — only visible for premium users
+        if (isPremium) {
+            Spacer(Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .background(Amber.copy(alpha = 0.14f), RoundedCornerShape(50))
+                    .border(1.dp, Amber.copy(alpha = 0.38f), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = Amber,
+                        modifier = Modifier.size(11.dp)
+                    )
+                    Text(
+                        text = "PREMIUM",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            letterSpacing = 1.5.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Amber
+                    )
+                }
+            }
         }
 
         Spacer(Modifier.height(28.dp))

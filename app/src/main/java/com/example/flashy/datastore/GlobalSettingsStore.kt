@@ -63,6 +63,11 @@ object GlobalSettingsStore {
     // Feature 8: flash event history — JSON array, newest first, capped at 30 entries
     val FLASH_HISTORY = stringPreferencesKey("flash_history")
 
+    // Premium — set to true after a successful Razorpay payment
+    val IS_PREMIUM          = booleanPreferencesKey("is_premium")
+    val PAYMENT_ID          = stringPreferencesKey("payment_id")        // Razorpay payment ID
+    val PAYMENT_TIMESTAMP   = stringPreferencesKey("payment_timestamp") // epoch millis as string
+
     // Onboarding — false until the user completes the first-launch walkthrough
     val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
 
@@ -74,7 +79,7 @@ object GlobalSettingsStore {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
                 FLASH_CHARGING_COMPLETE, FLASH_SOUND_REACTIVE, FLASH_LOW_BATTERY_ALERT,
-                ONBOARDING_COMPLETE, REVIEW_PROMPTED -> false   // opt-in / first-launch gates
+                ONBOARDING_COMPLETE, REVIEW_PROMPTED, IS_PREMIUM -> false   // opt-in / first-launch gates
                 else -> true
             }
         }

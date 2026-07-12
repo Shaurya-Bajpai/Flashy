@@ -12,6 +12,8 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -54,6 +56,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Razorpay payment upgrade screen -->
+        <activity
+            android:name=".screen.premium.PremiumActivity"
+            android:exported="false"
+            android:label="Upgrade to Premium"
+            android:theme="@style/Theme.Flashy"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- Transparent activity launched by the long-press shortcut.
              noHistory + excludeFromRecents keeps it invisible to the user. -->
