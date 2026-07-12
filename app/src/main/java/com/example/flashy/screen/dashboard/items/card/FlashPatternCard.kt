@@ -77,6 +77,9 @@ private val COUNT_OPTIONS_CALL = listOf(
 
 @Composable
 fun FlashPatternCard(
+    flashCall: Boolean,
+    flashSms: Boolean,
+    flashNotify: Boolean,
     callCount: Int,
     callSpeedMs: Int,
     smsCount: Int,
@@ -90,16 +93,6 @@ fun FlashPatternCard(
     onNotifCountChange: (Int) -> Unit = {},
     onNotifSpeedChange: (Int) -> Unit = {},
 ) {
-    val context = LocalContext.current
-
-    // Collect settings from GlobalSettingsStore
-    val flashGlobal by GlobalSettingsStore.get(context, FLASH_GLOBAL).collectAsState(initial = true)
-    val flashCall by GlobalSettingsStore.get(context, FLASH_CALL).collectAsState(initial = true)
-    val flashSms by GlobalSettingsStore.get(context, FLASH_SMS).collectAsState(initial = true)
-    val flashApps by GlobalSettingsStore.get(context, FLASH_NOTIFICATIONS).collectAsState(initial = true)
-
-    if(!flashGlobal || !flashCall && !flashSms && !flashApps) return
-
     GlassMorphismCard {
         Column(
             modifier = Modifier
@@ -143,7 +136,7 @@ fun FlashPatternCard(
             }
 
             // ── Apps ─────────────────────────────────────────────────
-            if(flashApps) {
+            if(flashNotify) {
                 PatternSection(
                     iconRes = R.drawable.baseline_notifications_active_24,
                     label = "Apps",
@@ -327,6 +320,9 @@ private fun PatternChip(
 @Composable
 fun FlashPatternCardPreview() {
     FlashPatternCard(
+        flashCall = true,
+        flashSms = true,
+        flashNotify = true,
         callCount = 0,
         callSpeedMs = 200,
         smsCount = 5,

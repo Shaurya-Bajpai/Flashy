@@ -188,21 +188,26 @@ fun FlashDashboardScreen(context: Context) {
                 )
             }
 
-            item {
-                FlashPatternCard(
-                    callCount    = callCount,
-                    callSpeedMs  = callSpeedMs,
-                    smsCount     = smsCount,
-                    smsSpeedMs   = smsSpeedMs,
-                    notifCount   = notifCount,
-                    notifSpeedMs = notifSpeedMs,
-                    onCallCountChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_COUNT]     = v } } },
-                    onCallSpeedChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_SPEED_MS]  = v } } },
-                    onSmsCountChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_COUNT]      = v } } },
-                    onSmsSpeedChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_SPEED_MS]   = v } } },
-                    onNotifCountChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_COUNT]    = v } } },
-                    onNotifSpeedChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_SPEED_MS] = v } } },
-                )
+            if(flashGlobal && flashCall || flashSms || flashNotify) {
+                item {
+                    FlashPatternCard(
+                        flashCall = flashCall,
+                        flashSms = flashSms,
+                        flashNotify = flashNotify,
+                        callCount = callCount,
+                        callSpeedMs = callSpeedMs,
+                        smsCount = smsCount,
+                        smsSpeedMs = smsSpeedMs,
+                        notifCount = notifCount,
+                        notifSpeedMs = notifSpeedMs,
+                        onCallCountChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_COUNT]     = v } } },
+                        onCallSpeedChange    = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_CALL_SPEED_MS]  = v } } },
+                        onSmsCountChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_COUNT]      = v } } },
+                        onSmsSpeedChange     = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_SMS_SPEED_MS]   = v } } },
+                        onNotifCountChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_COUNT]    = v } } },
+                        onNotifSpeedChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_SPEED_MS] = v } } },
+                    )
+                }
             }
 
             item {
