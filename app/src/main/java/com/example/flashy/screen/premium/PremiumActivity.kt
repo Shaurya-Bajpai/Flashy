@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.dsb.flashy.BuildConfig
+import com.dsb.flashy.analytics.FlashyAnalytics
 import com.dsb.flashy.payment.PREMIUM_CURRENCY
 import com.dsb.flashy.payment.PREMIUM_PRICE_PAISE
 import com.dsb.flashy.payment.PremiumManager
@@ -30,6 +31,8 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
         // Pre-warm the Razorpay WebView so the payment sheet opens faster
         Checkout.preload(applicationContext)
 
+        FlashyAnalytics.logUpgradeScreenOpened(this)
+
         setContent {
             FlashyTheme {
                 PremiumScreen(
@@ -46,6 +49,7 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
     private fun startPayment() {
         if (isPurchasing) return
         isPurchasing = true
+        FlashyAnalytics.logPaymentInitiated(this)
 
         val checkout = Checkout()
         checkout.setKeyID(BuildConfig.RAZORPAY_KEY_ID)
@@ -121,6 +125,9 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
 
     override fun onPaymentError(code: Int, description: String?) {
         isPurchasing = false
+        if (code != 2) {
+            FlashyAnalytics.logPaymentFailed(this, code, description ?: "unknown")
+        }
         // code 2 = user dismissed the payment sheet — not an error worth showing
         if (code == 2) return
         val msg = when (code) {

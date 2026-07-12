@@ -49,6 +49,7 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import com.dsb.flashy.R
+import com.dsb.flashy.analytics.FlashyAnalytics
 import com.dsb.flashy.datastore.GlobalSettingsStore
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
@@ -195,6 +196,11 @@ fun FlashDashboardScreen(context: Context) {
     // Keep local sliders in sync with DataStore (e.g. first load after initial emptyPreferences())
     LaunchedEffect(soundSensitivity) { soundSensitivitySlider = soundSensitivity }
     LaunchedEffect(batteryThreshold) { batterySlider = batteryThreshold.toFloat() }
+
+    // Set user context on Crashlytics + Analytics once per session (re-runs if isPremium changes)
+    LaunchedEffect(isPremium) {
+        FlashyAnalytics.init(context, isPremium)
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -343,7 +349,10 @@ fun FlashDashboardScreen(context: Context) {
                     featureIconRes = R.drawable.baseline_mic_24,
                     featureDescription = "Flash syncs with music beats and ambient audio",
                     accentColor = Color(0xFF7C3AED),
-                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                    onUpgradeClick = {
+                        FlashyAnalytics.logPremiumGateTapped(context, "sound_reactive")
+                        context.startActivity(Intent(context, PremiumActivity::class.java))
+                    }
                 ) {
                     SoundReactiveCard(
                         enabled = soundReactive,
@@ -376,7 +385,10 @@ fun FlashDashboardScreen(context: Context) {
                     featureIconRes = R.drawable.baseline_flash_on_24,
                     featureDescription = "Customize blink speed and count per alert type",
                     accentColor = Amber,
-                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                    onUpgradeClick = {
+                        FlashyAnalytics.logPremiumGateTapped(context, "flash_pattern")
+                        context.startActivity(Intent(context, PremiumActivity::class.java))
+                    }
                 ) {
                     FlashPatternCard(
                         callCount    = callCount,
@@ -404,7 +416,10 @@ fun FlashDashboardScreen(context: Context) {
                     featureIconRes = R.drawable.baseline_sms_24,
                     featureDescription = "Flash only when specific people reach you",
                     accentColor = ColorApp,
-                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                    onUpgradeClick = {
+                        FlashyAnalytics.logPremiumGateTapped(context, "contact_filter")
+                        context.startActivity(Intent(context, PremiumActivity::class.java))
+                    }
                 ) {
                     ContactFilterCard(
                         callFilterMode   = callFilterMode,
@@ -429,7 +444,10 @@ fun FlashDashboardScreen(context: Context) {
                     featureIconRes = R.drawable.baseline_notifications_active_24,
                     featureDescription = "Block or customize flash behavior per installed app",
                     accentColor = ColorApp,
-                    onUpgradeClick = { context.startActivity(Intent(context, PremiumActivity::class.java)) }
+                    onUpgradeClick = {
+                        FlashyAnalytics.logPremiumGateTapped(context, "per_app_rules")
+                        context.startActivity(Intent(context, PremiumActivity::class.java))
+                    }
                 ) {
                     AppFilterCard(
                         context = context,

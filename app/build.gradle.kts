@@ -90,6 +90,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation("com.google.firebase:firebase-firestore")
 
     implementation(libs.androidx.datastore.preferences)
     implementation("com.google.android.play:review-ktx:2.0.2")

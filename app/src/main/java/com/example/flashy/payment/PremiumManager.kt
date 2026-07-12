@@ -2,6 +2,7 @@ package com.dsb.flashy.payment
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import com.dsb.flashy.analytics.FlashyAnalytics
 import com.dsb.flashy.datastore.GlobalSettingsStore.IS_PREMIUM
 import com.dsb.flashy.datastore.GlobalSettingsStore.PAYMENT_ID
 import com.dsb.flashy.datastore.GlobalSettingsStore.PAYMENT_TIMESTAMP
@@ -34,6 +35,7 @@ object PremiumManager {
             prefs[PAYMENT_ID]          = paymentId
             prefs[PAYMENT_TIMESTAMP]   = System.currentTimeMillis().toString()
         }
+        FlashyAnalytics.onPremiumActivated(context, paymentId)
     }
 
     // ── One-shot check (use inside a coroutine) ───────────────────────────────
