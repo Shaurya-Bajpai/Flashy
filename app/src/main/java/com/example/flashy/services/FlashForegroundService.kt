@@ -125,10 +125,13 @@ class FlashCallService : Service() {
             startForeground(NOTIFICATION_ID, notification)
         }
 
+        val countOverride = intent?.getIntExtra("flashCountOverride", -1) ?: -1
+        val speedOverride = intent?.getIntExtra("flashSpeedOverride", -1) ?: -1
+
         if (eventType != "INIT" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Launch a coroutine to call the suspend function
             serviceScope.launch {
-                handleEvent(this@FlashCallService, eventType)
+                handleEvent(this@FlashCallService, eventType, countOverride, speedOverride)
             }
         }
 
@@ -146,7 +149,7 @@ class FlashCallService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun handleEvent(context: Context, eventType: String) {
+    suspend fun handleEvent(context: Context, eventType: String, countOverride: Int = -1, speedOverride: Int = -1) {
         val prefs = context.flashDataStore.data.first()
 
         val isGlobalEnabled = prefs[FLASH_GLOBAL] ?: true
@@ -186,8 +189,9 @@ class FlashCallService : Service() {
         val callSpeedMs  = (prefs[FLASH_CALL_SPEED_MS]  ?: 200).toLong()
         val smsCount     = prefs[FLASH_SMS_COUNT]       ?: 5
         val smsSpeedMs   = (prefs[FLASH_SMS_SPEED_MS]   ?: 200).toLong()
-        val notifCount   = prefs[FLASH_NOTIF_COUNT]     ?: 5
-        val notifSpeedMs = (prefs[FLASH_NOTIF_SPEED_MS] ?: 200).toLong()
+        // Per-app overrides take precedence over global NOTIF settings when present.
+        val notifCount   = if (countOverride >= 0) countOverride else (prefs[FLASH_NOTIF_COUNT]   ?: 5)
+        val notifSpeedMs = if (speedOverride >= 0) speedOverride.toLong() else (prefs[FLASH_NOTIF_SPEED_MS] ?: 200).toLong()
 
         when (eventType) {
             "CALL" -> if (isCallEnabled) {
