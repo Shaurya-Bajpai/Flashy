@@ -59,10 +59,10 @@
 - 👥 **Contact Prioritization** - VIP contacts get special flash patterns
 -->
 ### 🛡️ **Privacy & Security**
-- 🔐 **No Data Collection** - Your notifications stay on your device
-- 🚫 **No Network Access** - Completely offline operation
+- 🔐 **Notification Content Stays Local** - We never read or store what your notifications say
+- 📊 **Anonymized Usage Analytics** - Firebase Analytics/Crashlytics track feature usage and crashes, keyed to an anonymous device ID, not your identity
 - 🔒 **Encrypted Settings** - Your preferences are secure
-- 👤 **Anonymous Usage** - No tracking or analytics
+- 🌐 **Network Used for Premium & Analytics** - Required for Razorpay checkout and the analytics above; core flash features work offline
 
 ---
 
@@ -243,9 +243,10 @@ Low_Battery:
 ## 🔒 Privacy & Security
 
 ### 🛡️ **Data Protection**
-- 🚫 **No Data Collection** - Zero personal information stored
-- 🔐 **Local Storage Only** - All settings saved on device
-- 🌐 **No Network Requests** - Completely offline operation
+- 🚫 **No PII Collected** - No name, email, or notification content is ever stored
+- 📊 **Anonymized Analytics** - Firebase Analytics/Crashlytics and a Firestore record (device model, app version, premium status) are keyed to an anonymous device ID, not your identity — see `privacy_policy.html`
+- 🔐 **Local-First Settings** - All preferences saved on device via DataStore
+- 🌐 **Network Required for Premium** - Razorpay checkout and purchase restore need connectivity; core flash features work offline
 - 🔒 **Encrypted Preferences** - Settings protected with device encryption
 
 ### 🔍 **Permissions Explained**
