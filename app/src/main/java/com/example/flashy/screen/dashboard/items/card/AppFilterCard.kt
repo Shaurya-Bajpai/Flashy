@@ -1,6 +1,7 @@
 package com.dsb.flashy.screen.dashboard.items.card
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
@@ -69,6 +70,7 @@ import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
+import com.dsb.flashy.util.ContactAwareApps
 import com.dsb.flashy.util.InstalledApp
 import com.dsb.flashy.util.InstalledAppsProvider
 
@@ -193,7 +195,22 @@ private fun AppRuleRow(
 ) {
     val keyboard    = LocalSoftwareKeyboardController.current
     var inputText   by remember { mutableStateOf("") }
-    val isSelected  = rule.filterMode == "selected"
+
+    // Utility apps (gallery, recorder, calculator, ...) never have a "who
+    // sent this" concept — offering per-contact filtering for them just
+    // dead-ends the user with a contact box they can never usefully fill in.
+    val supportsContacts = remember(rule.packageName) {
+        val category = try {
+            context.packageManager.getApplicationInfo(rule.packageName, 0).category
+        } catch (_: Exception) {
+            ApplicationInfo.CATEGORY_UNDEFINED
+        }
+        ContactAwareApps.supportsContactFiltering(rule.packageName, category)
+    }
+
+    // Self-heals rules saved back when an app was (mis)classified as
+    // contact-aware — never show the contact UI for one that isn't.
+    val isSelected  = rule.filterMode == "selected" && supportsContacts
     val isBlocked   = rule.filterMode == "blocked"
     val contactList = remember(rule.contacts) {
         rule.contacts.split(",").map { it.trim() }.filter { it.isNotEmpty() }
@@ -219,9 +236,11 @@ private fun AppRuleRow(
                 modifier = Modifier.weight(1f)
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AppModeChip(text = "All",      selected = rule.filterMode == "all")      { onUpdate(rule.copy(filterMode = "all")) }
-                AppModeChip(text = "Selected", selected = isSelected)                     { onUpdate(rule.copy(filterMode = "selected")) }
-                AppModeChip(text = "Block",    selected = isBlocked, accentColor = BlockRed) { onUpdate(rule.copy(filterMode = "blocked")) }
+                AppModeChip(text = "All", selected = rule.filterMode == "all") { onUpdate(rule.copy(filterMode = "all")) }
+                if (supportsContacts) {
+                    AppModeChip(text = "Selected", selected = isSelected) { onUpdate(rule.copy(filterMode = "selected")) }
+                }
+                AppModeChip(text = "Block", selected = isBlocked, accentColor = BlockRed) { onUpdate(rule.copy(filterMode = "blocked")) }
             }
             Spacer(Modifier.width(8.dp))
             Box(
