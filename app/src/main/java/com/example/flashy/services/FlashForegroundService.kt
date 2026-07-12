@@ -27,6 +27,7 @@ import com.dsb.flashy.advance.isSystemDndActive
 import com.dsb.flashy.advance.isWithinDND
 import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.call.CallStateListener
+import com.dsb.flashy.datastore.GlobalSettingsStore
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
@@ -46,6 +47,7 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
 import com.dsb.flashy.datastore.flashDataStore
+import com.dsb.flashy.model.FlashHistoryEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -146,13 +148,17 @@ class FlashCallService : Service() {
             startForeground(NOTIFICATION_ID, notification)
         }
 
-        val countOverride = intent?.getIntExtra("flashCountOverride", -1) ?: -1
-        val speedOverride = intent?.getIntExtra("flashSpeedOverride", -1) ?: -1
+        val countOverride  = intent?.getIntExtra("flashCountOverride", -1) ?: -1
+        val speedOverride  = intent?.getIntExtra("flashSpeedOverride", -1) ?: -1
+        val senderName     = intent?.getStringExtra("senderName") ?: ""
+        val appPackage     = intent?.getStringExtra("appPackage") ?: ""
+        val appName        = intent?.getStringExtra("appName") ?: ""
 
         if (eventType != "INIT" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Launch a coroutine to call the suspend function
             serviceScope.launch {
-                handleEvent(this@FlashCallService, eventType, countOverride, speedOverride)
+                handleEvent(this@FlashCallService, eventType, countOverride, speedOverride,
+                    senderName, appPackage, appName)
             }
         }
 
@@ -170,7 +176,15 @@ class FlashCallService : Service() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun handleEvent(context: Context, eventType: String, countOverride: Int = -1, speedOverride: Int = -1) {
+    suspend fun handleEvent(
+        context: Context,
+        eventType: String,
+        countOverride: Int = -1,
+        speedOverride: Int = -1,
+        senderName: String = "",
+        appPackage: String = "",
+        appName: String = ""
+    ) {
         val prefs = context.flashDataStore.data.first()
 
         val isGlobalEnabled = prefs[FLASH_GLOBAL] ?: true
@@ -213,14 +227,29 @@ class FlashCallService : Service() {
         // Per-app overrides take precedence over global NOTIF settings when present.
         val notifCount   = if (countOverride >= 0) countOverride else (prefs[FLASH_NOTIF_COUNT]   ?: 5)
         val notifSpeedMs = if (speedOverride >= 0) speedOverride.toLong() else (prefs[FLASH_NOTIF_SPEED_MS] ?: 200).toLong()
+        var flashFired = false
 
         when (eventType) {
             "CALL" -> if (isCallEnabled) {
                 if (callCount == 0) flashController.blinkFlashIndefinitely(callSpeedMs)
                 else flashController.blinkFlash(callSpeedMs, callCount)
+                flashFired = true
             }
-            "SMS" -> if (isSmsEnabled) flashController.blinkFlash(smsSpeedMs,   smsCount)
-            "NOTIF" -> if (isNotifEnabled) flashController.blinkFlash(notifSpeedMs, notifCount)
+            "SMS"   -> if (isSmsEnabled)  { flashController.blinkFlash(smsSpeedMs,   smsCount);   flashFired = true }
+            "NOTIF" -> if (isNotifEnabled){ flashController.blinkFlash(notifSpeedMs, notifCount); flashFired = true }
+        }
+
+        if (flashFired) {
+            GlobalSettingsStore.appendFlashHistory(
+                context,
+                FlashHistoryEvent(
+                    eventType   = eventType,
+                    senderName  = senderName,
+                    appPackage  = appPackage,
+                    appName     = appName,
+                    timestampMs = System.currentTimeMillis()
+                )
+            )
         }
 
         // Auto-stop after the blink sequence finishes.
