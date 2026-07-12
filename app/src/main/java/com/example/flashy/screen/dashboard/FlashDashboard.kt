@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +25,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -55,6 +61,7 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
 import com.dsb.flashy.screen.dashboard.items.AnimatedBackground
+import com.dsb.flashy.screen.dashboard.items.BatteryOptimizationBanner
 import com.dsb.flashy.screen.dashboard.items.PremiumHeader
 import com.dsb.flashy.screen.dashboard.items.StatusAlert
 import com.dsb.flashy.screen.dashboard.items.card.AdaptiveRingerCard
@@ -77,6 +84,25 @@ fun FlashDashboardScreen(context: Context) {
 
     var batterySlider by remember { mutableFloatStateOf(batteryThreshold.toFloat()) }
     var showPulse by remember { mutableStateOf(false) }
+
+    // Battery optimization state — re-checked every time the user returns to the app
+    val powerManager = remember { context.getSystemService(Context.POWER_SERVICE) as PowerManager }
+    var batteryOptimizationActive by remember {
+        mutableStateOf(!powerManager.isIgnoringBatteryOptimizations(context.packageName))
+    }
+    var batteryBannerDismissed by remember { mutableStateOf(false) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                batteryOptimizationActive =
+                    !powerManager.isIgnoringBatteryOptimizations(context.packageName)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val flashGlobal by GlobalSettingsStore.get(context, FLASH_GLOBAL).collectAsState(initial = true)
     val flashCall by GlobalSettingsStore.get(context, FLASH_CALL).collectAsState(initial = true)
@@ -142,6 +168,20 @@ fun FlashDashboardScreen(context: Context) {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item { PremiumHeader(showPulse, flashGlobal) }
+
+            if (batteryOptimizationActive && !batteryBannerDismissed) {
+                item {
+                    BatteryOptimizationBanner(
+                        onFixClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                                    .setData(Uri.parse("package:${context.packageName}"))
+                            )
+                        },
+                        onDismiss = { batteryBannerDismissed = true }
+                    )
+                }
+            }
 
             item {
                 MasterControlCard(
