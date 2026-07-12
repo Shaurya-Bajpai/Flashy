@@ -31,6 +31,19 @@ object GlobalSettingsStore {
     val FLASH_NOTIF_COUNT   = intPreferencesKey("flash_notif_count")     // 3, 5, 10
     val FLASH_NOTIF_SPEED_MS= intPreferencesKey("flash_notif_speed_ms")  // 100, 200, 400
 
+    // Contact filter — "all" flashes for everyone; "selected" only flashes for listed names
+    // Contacts stored as comma-separated display names, e.g. "Mom,John Smith,Work"
+    val FLASH_CALL_FILTER_MODE  = stringPreferencesKey("flash_call_filter_mode")   // "all" | "selected"
+    val FLASH_CALL_CONTACTS     = stringPreferencesKey("flash_call_contacts")       // "Name1,Name2"
+    val FLASH_SMS_FILTER_MODE   = stringPreferencesKey("flash_sms_filter_mode")    // "all" | "selected"
+    val FLASH_SMS_CONTACTS      = stringPreferencesKey("flash_sms_contacts")        // "Name1,Name2"
+    val FLASH_NOTIF_FILTER_MODE = stringPreferencesKey("flash_notif_filter_mode")  // "all" | "selected"
+    val FLASH_NOTIF_CONTACTS    = stringPreferencesKey("flash_notif_contacts")      // "Name1,Name2"
+
+    // Per-app rules — JSON array of AppFlashRule objects
+    // Each rule overrides the global Apps filter for that specific app
+    val FLASH_APP_RULES = stringPreferencesKey("flash_app_rules")
+
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: true
@@ -48,6 +61,7 @@ object GlobalSettingsStore {
             prefs[key] ?: when (key) {
                 FLASH_DND_START -> "00:00"
                 FLASH_DND_END -> "07:00"
+                FLASH_CALL_FILTER_MODE, FLASH_SMS_FILTER_MODE, FLASH_NOTIF_FILTER_MODE -> "all"
                 else -> ""
             }
         }

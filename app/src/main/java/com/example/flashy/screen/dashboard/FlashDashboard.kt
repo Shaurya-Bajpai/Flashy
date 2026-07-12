@@ -30,20 +30,27 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import com.dsb.flashy.datastore.GlobalSettingsStore
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_APP_RULES
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
@@ -51,6 +58,8 @@ import com.dsb.flashy.screen.dashboard.items.AnimatedBackground
 import com.dsb.flashy.screen.dashboard.items.PremiumHeader
 import com.dsb.flashy.screen.dashboard.items.StatusAlert
 import com.dsb.flashy.screen.dashboard.items.card.AdaptiveRingerCard
+import com.dsb.flashy.screen.dashboard.items.card.AppFilterCard
+import com.dsb.flashy.screen.dashboard.items.card.ContactFilterCard
 import com.dsb.flashy.screen.dashboard.items.card.FlashPatternCard
 import com.dsb.flashy.screen.dashboard.items.card.IntelligentBatteryCard
 import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
@@ -76,6 +85,15 @@ fun FlashDashboardScreen(context: Context) {
     val flashDndStart by GlobalSettingsStore.getString(context, FLASH_DND_START).collectAsState(initial = "00:00")
     val flashDndEnd by GlobalSettingsStore.getString(context, FLASH_DND_END).collectAsState(initial = "07:00")
     val flashScreenOffOnly by GlobalSettingsStore.get(context, FLASH_SCREEN_OFF_ONLY).collectAsState(initial = true)
+
+    // Contact filter settings
+    val callFilterMode   by GlobalSettingsStore.getString(context, FLASH_CALL_FILTER_MODE).collectAsState(initial = "all")
+    val callContacts     by GlobalSettingsStore.getString(context, FLASH_CALL_CONTACTS).collectAsState(initial = "")
+    val smsFilterMode    by GlobalSettingsStore.getString(context, FLASH_SMS_FILTER_MODE).collectAsState(initial = "all")
+    val smsContacts      by GlobalSettingsStore.getString(context, FLASH_SMS_CONTACTS).collectAsState(initial = "")
+    val notifFilterMode  by GlobalSettingsStore.getString(context, FLASH_NOTIF_FILTER_MODE).collectAsState(initial = "all")
+    val notifContacts    by GlobalSettingsStore.getString(context, FLASH_NOTIF_CONTACTS).collectAsState(initial = "")
+    val appRulesJson     by GlobalSettingsStore.getString(context, FLASH_APP_RULES).collectAsState(initial = "")
 
     // Flash pattern settings
     val callCount    by GlobalSettingsStore.getInt(context, FLASH_CALL_COUNT).collectAsState(initial = 0)
@@ -208,6 +226,31 @@ fun FlashDashboardScreen(context: Context) {
                         onNotifSpeedChange   = { v -> scope.launch { context.flashDataStore.edit { it[FLASH_NOTIF_SPEED_MS] = v } } },
                     )
                 }
+            }
+
+            item {
+                ContactFilterCard(
+                    callFilterMode   = callFilterMode,
+                    callContacts     = callContacts,
+                    smsFilterMode    = smsFilterMode,
+                    smsContacts      = smsContacts,
+                    notifFilterMode  = notifFilterMode,
+                    notifContacts    = notifContacts,
+                    onCallFilterModeChange  = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_FILTER_MODE,  v) } },
+                    onCallContactsChange    = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_CONTACTS,     v) } },
+                    onSmsFilterModeChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_FILTER_MODE,   v) } },
+                    onSmsContactsChange     = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_CONTACTS,      v) } },
+                    onNotifFilterModeChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_FILTER_MODE, v) } },
+                    onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
+                )
+            }
+
+            item {
+                AppFilterCard(
+                    context = context,
+                    appRulesJson = appRulesJson,
+                    onAppRulesChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_APP_RULES, v) } }
+                )
             }
 
             item {
