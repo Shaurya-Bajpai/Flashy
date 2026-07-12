@@ -5,8 +5,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -20,6 +23,7 @@ import com.dsb.flashy.R
 import com.dsb.flashy.advance.getBatteryLevel
 import com.dsb.flashy.advance.isRingerModeAllowed
 import com.dsb.flashy.advance.isScreenOn
+import com.dsb.flashy.advance.isSystemDndActive
 import com.dsb.flashy.advance.isWithinDND
 import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.call.CallStateListener
@@ -27,12 +31,14 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_BATTERY_THRESHOLD
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_SPEED_MS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
@@ -57,6 +63,35 @@ class FlashCallService : Service() {
     private lateinit var callListener: CallStateListener
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    // Track previous battery level so we only flash once on the 99→100 transition.
+    private var prevBatteryPct = -1
+
+    private val batteryReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val level  = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val scale  = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            if (level < 0 || scale <= 0) return
+
+            val pct = level * 100 / scale
+            val isAtFull = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == BatteryManager.BATTERY_STATUS_FULL
+
+            if (pct == 100 && isAtFull && prevBatteryPct in 0..99) {
+                serviceScope.launch {
+                    val prefs = context.flashDataStore.data.first()
+                    val globalOn   = prefs[FLASH_GLOBAL]            ?: true
+                    val featureOn  = prefs[FLASH_CHARGING_COMPLETE]  ?: false
+                    if (globalOn && featureOn) {
+                        Log.d("FlashService", "Battery full — triggering charging-complete flash")
+                        flashController.blinkFlash(200L, 5)
+                    }
+                }
+            }
+            prevBatteryPct = pct
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -64,6 +99,8 @@ class FlashCallService : Service() {
         flashController = FlashController(this)
         callListener = CallStateListener(this, flashController)
         callListener.register()
+
+        registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -101,6 +138,7 @@ class FlashCallService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        unregisterReceiver(batteryReceiver)
         callListener.unregister()
         flashController.release()
         serviceScope.cancel()
@@ -131,6 +169,12 @@ class FlashCallService : Service() {
         if (!isGlobalEnabled) return
         if (isWithinDND(currentTime, dndStart, dndEnd)) return
         if (screenOnly && isScreenOn(context)) return
+
+        val respectSystemDnd = prefs[FLASH_RESPECT_SYSTEM_DND] ?: true
+        if (respectSystemDnd && isSystemDndActive(context)) {
+            Log.d("FlashService", "System DND active — skipping flash")
+            return
+        }
 
         val currentBattery = getBatteryLevel(context)
         if (currentBattery < batteryThreshold) {

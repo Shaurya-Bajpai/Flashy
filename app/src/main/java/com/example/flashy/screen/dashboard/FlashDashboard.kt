@@ -31,6 +31,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
@@ -58,6 +60,8 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_SPEED_MS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
 import com.dsb.flashy.datastore.flashDataStore
 import com.dsb.flashy.screen.dashboard.items.AlertGrid
 import com.dsb.flashy.screen.dashboard.items.AnimatedBackground
@@ -113,13 +117,15 @@ fun FlashDashboardScreen(context: Context) {
     val flashScreenOffOnly by GlobalSettingsStore.get(context, FLASH_SCREEN_OFF_ONLY).collectAsState(initial = true)
 
     // Contact filter settings
-    val callFilterMode   by GlobalSettingsStore.getString(context, FLASH_CALL_FILTER_MODE).collectAsState(initial = "all")
-    val callContacts     by GlobalSettingsStore.getString(context, FLASH_CALL_CONTACTS).collectAsState(initial = "")
-    val smsFilterMode    by GlobalSettingsStore.getString(context, FLASH_SMS_FILTER_MODE).collectAsState(initial = "all")
-    val smsContacts      by GlobalSettingsStore.getString(context, FLASH_SMS_CONTACTS).collectAsState(initial = "")
-    val notifFilterMode  by GlobalSettingsStore.getString(context, FLASH_NOTIF_FILTER_MODE).collectAsState(initial = "all")
-    val notifContacts    by GlobalSettingsStore.getString(context, FLASH_NOTIF_CONTACTS).collectAsState(initial = "")
-    val appRulesJson     by GlobalSettingsStore.getString(context, FLASH_APP_RULES).collectAsState(initial = "")
+    val callFilterMode by GlobalSettingsStore.getString(context, FLASH_CALL_FILTER_MODE).collectAsState(initial = "all")
+    val callContacts by GlobalSettingsStore.getString(context, FLASH_CALL_CONTACTS).collectAsState(initial = "")
+    val smsFilterMode by GlobalSettingsStore.getString(context, FLASH_SMS_FILTER_MODE).collectAsState(initial = "all")
+    val smsContacts by GlobalSettingsStore.getString(context, FLASH_SMS_CONTACTS).collectAsState(initial = "")
+    val notifFilterMode by GlobalSettingsStore.getString(context, FLASH_NOTIF_FILTER_MODE).collectAsState(initial = "all")
+    val notifContacts by GlobalSettingsStore.getString(context, FLASH_NOTIF_CONTACTS).collectAsState(initial = "")
+    val appRulesJson by GlobalSettingsStore.getString(context, FLASH_APP_RULES).collectAsState(initial = "")
+    val respectSystemDnd by GlobalSettingsStore.get(context, FLASH_RESPECT_SYSTEM_DND).collectAsState(initial = true)
+    val chargingCompleteFlash by GlobalSettingsStore.get(context, FLASH_CHARGING_COMPLETE).collectAsState(initial = false)
 
     // Flash pattern settings
     val callCount    by GlobalSettingsStore.getInt(context, FLASH_CALL_COUNT).collectAsState(initial = 0)
@@ -218,11 +224,15 @@ fun FlashDashboardScreen(context: Context) {
                 SmartScheduleCard(
                     startTime = flashDndStart,
                     endTime = flashDndEnd,
+                    respectSystemDnd = respectSystemDnd,
                     onStartTimeChange = { newTime ->
                         scope.launch { context.flashDataStore.edit { it[FLASH_DND_START] = newTime } }
                     },
                     onEndTimeChange = { newTime ->
                         scope.launch { context.flashDataStore.edit { it[FLASH_DND_END] = newTime } }
+                    },
+                    onRespectSystemDndChange = { v ->
+                        scope.launch { GlobalSettingsStore.set(context, FLASH_RESPECT_SYSTEM_DND, v) }
                     }
                 )
             }
@@ -230,9 +240,13 @@ fun FlashDashboardScreen(context: Context) {
             item {
                 IntelligentBatteryCard(
                     threshold = batterySlider / 100f,
+                    chargingCompleteFlash = chargingCompleteFlash,
                     onThresholdChange = { batterySlider = it * 100f },
                     onThresholdChangeFinished = {
                         scope.launch { context.flashDataStore.edit { it[FLASH_BATTERY_THRESHOLD] = batterySlider.toInt() } }
+                    },
+                    onChargingCompleteFlashChange = { v ->
+                        scope.launch { GlobalSettingsStore.set(context, FLASH_CHARGING_COMPLETE, v) }
                     }
                 )
             }
@@ -304,4 +318,10 @@ fun FlashDashboardScreen(context: Context) {
             }
         }
     }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun FlashDashboardScreenPreview() {
+    FlashDashboardScreen(LocalContext.current)
 }

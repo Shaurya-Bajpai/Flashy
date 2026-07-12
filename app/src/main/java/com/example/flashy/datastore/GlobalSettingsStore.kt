@@ -40,13 +40,22 @@ object GlobalSettingsStore {
     val FLASH_NOTIF_FILTER_MODE = stringPreferencesKey("flash_notif_filter_mode")  // "all" | "selected"
     val FLASH_NOTIF_CONTACTS    = stringPreferencesKey("flash_notif_contacts")      // "Name1,Name2"
 
+    // Feature 11: respect Android system DND (on by default)
+    val FLASH_RESPECT_SYSTEM_DND = booleanPreferencesKey("flash_respect_system_dnd")
+
+    // Feature 12: flash once when battery reaches 100% while charging (off by default)
+    val FLASH_CHARGING_COMPLETE = booleanPreferencesKey("flash_charging_complete")
+
     // Per-app rules — JSON array of AppFlashRule objects
     // Each rule overrides the global Apps filter for that specific app
     val FLASH_APP_RULES = stringPreferencesKey("flash_app_rules")
 
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
-            prefs[key] ?: true
+            prefs[key] ?: when (key) {
+                FLASH_CHARGING_COMPLETE -> false   // opt-in
+                else -> true
+            }
         }
     }
 
