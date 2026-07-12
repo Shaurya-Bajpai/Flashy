@@ -12,6 +12,7 @@ import com.dsb.flashy.BuildConfig
 import com.dsb.flashy.payment.PREMIUM_CURRENCY
 import com.dsb.flashy.payment.PREMIUM_PRICE_PAISE
 import com.dsb.flashy.payment.PremiumManager
+import com.dsb.flashy.payment.RestoreResult
 import com.dsb.flashy.ui.theme.FlashyTheme
 import com.razorpay.Checkout
 import com.razorpay.PaymentResultListener
@@ -20,8 +21,8 @@ import org.json.JSONObject
 
 class PremiumActivity : ComponentActivity(), PaymentResultListener {
 
-    // Tracked as Compose state so PremiumScreen re-composes automatically
-    private var isPurchasing by mutableStateOf(false)
+    private var isPurchasing  by mutableStateOf(false)
+    private var restoreState  by mutableStateOf<RestoreState>(RestoreState.Idle)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +33,10 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
         setContent {
             FlashyTheme {
                 PremiumScreen(
-                    isPurchasing = isPurchasing,
+                    isPurchasing  = isPurchasing,
+                    restoreState  = restoreState,
                     onUpgradeClick = { startPayment() },
+                    onRestoreClick = { paymentId -> restorePurchase(paymentId) },
                     onBack = { finish() }
                 )
             }
@@ -66,6 +69,33 @@ class PremiumActivity : ComponentActivity(), PaymentResultListener {
         } catch (e: Exception) {
             isPurchasing = false
             Toast.makeText(this, "Could not start payment. Please try again.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun restorePurchase(paymentId: String) {
+        restoreState = RestoreState.Loading
+        lifecycleScope.launch {
+            restoreState = when (val result = PremiumManager.restorePurchase(this@PremiumActivity, paymentId)) {
+                is RestoreResult.Success -> {
+                    Toast.makeText(
+                        this@PremiumActivity,
+                        "Premium restored! All features are unlocked.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    setResult(RESULT_OK)
+                    finish()
+                    RestoreState.Success
+                }
+                is RestoreResult.NotFound -> RestoreState.Error(
+                    "Payment ID not found. Check the ID from your Razorpay SMS/email."
+                )
+                is RestoreResult.InvalidFormat -> RestoreState.Error(
+                    "Invalid format. Payment IDs start with 'pay_' — e.g. pay_AbCd1234XyZw"
+                )
+                is RestoreResult.NetworkError -> RestoreState.Error(
+                    "Network error. Check your connection and try again."
+                )
+            }
         }
     }
 

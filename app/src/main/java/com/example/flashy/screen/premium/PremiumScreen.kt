@@ -1,5 +1,10 @@
 package com.dsb.flashy.screen.premium
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,14 +29,23 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -53,6 +67,14 @@ import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
 
+// UI state for the restore-purchase flow
+sealed class RestoreState {
+    object Idle    : RestoreState()
+    object Loading : RestoreState()
+    object Success : RestoreState()
+    data class Error(val message: String) : RestoreState()
+}
+
 private data class PremiumFeature(
     val iconRes: Int?,
     val iconVec: androidx.compose.ui.graphics.vector.ImageVector?,
@@ -64,7 +86,9 @@ private data class PremiumFeature(
 @Composable
 fun PremiumScreen(
     isPurchasing: Boolean,
+    restoreState: RestoreState = RestoreState.Idle,
     onUpgradeClick: () -> Unit,
+    onRestoreClick: (paymentId: String) -> Unit = {},
     onBack: () -> Unit,
 ) {
     val features = listOf(
@@ -322,6 +346,15 @@ fun PremiumScreen(
 
                 Spacer(Modifier.height(36.dp))
             }
+
+            // ── Restore purchase ──────────────────────────────────────────────
+            item(key = "restore") {
+                RestorePurchaseSection(
+                    restoreState = restoreState,
+                    onRestoreClick = onRestoreClick
+                )
+                Spacer(Modifier.height(36.dp))
+            }
         }
     }
 }
@@ -388,6 +421,138 @@ private fun FeatureRow(feature: PremiumFeature) {
             Text(feature.name, style = MaterialTheme.typography.bodyLarge, color = TextWarm)
             Spacer(Modifier.height(2.dp))
             Text(feature.detail, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+        }
+    }
+}
+
+@Composable
+private fun RestorePurchaseSection(
+    restoreState: RestoreState,
+    onRestoreClick: (String) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var paymentId by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        HorizontalDivider(thickness = 0.5.dp, color = Color.White.copy(alpha = 0.07f))
+        Spacer(Modifier.height(20.dp))
+
+        // "Already paid on another device?" toggle
+        Text(
+            text = if (expanded) "Hide restore" else "Already paid on another device?",
+            style = MaterialTheme.typography.labelMedium,
+            color = if (expanded) TextDim else Amber.copy(alpha = 0.80f),
+            modifier = Modifier.clickable { expanded = !expanded }
+        )
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(modifier = Modifier.padding(top = 16.dp)) {
+                Text(
+                    text = "Enter the Razorpay payment ID from your SMS/email receipt.\nFormat: pay_XXXXXXXXXXXXXX",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(14.dp))
+
+                // Input row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedTextField(
+                        value = paymentId,
+                        onValueChange = { paymentId = it.trim() },
+                        placeholder = {
+                            Text(
+                                "pay_XXXXXXXXXXXXXX",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextDim
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodySmall.copy(color = TextWarm),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            if (paymentId.isNotBlank()) onRestoreClick(paymentId)
+                        }),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Amber,
+                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
+                            cursorColor = Amber,
+                            focusedContainerColor = Color.White.copy(alpha = 0.04f),
+                            unfocusedContainerColor = Color.White.copy(alpha = 0.02f),
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(52.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    val canRestore = paymentId.isNotBlank() && restoreState !is RestoreState.Loading
+                    Box(
+                        modifier = Modifier
+                            .height(52.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (canRestore) Amber.copy(alpha = 0.18f)
+                                else Color.White.copy(alpha = 0.04f)
+                            )
+                            .border(
+                                1.dp,
+                                if (canRestore) Amber.copy(alpha = 0.55f)
+                                else Color.White.copy(alpha = 0.08f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .clickable(enabled = canRestore) { onRestoreClick(paymentId) }
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (restoreState is RestoreState.Loading) {
+                            CircularProgressIndicator(
+                                color = Amber,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        } else {
+                            Text(
+                                "Restore",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (canRestore) Amber else TextDim
+                            )
+                        }
+                    }
+                }
+
+                // Feedback message
+                Spacer(Modifier.height(10.dp))
+                when (restoreState) {
+                    is RestoreState.Success -> Text(
+                        text = "✓  Premium restored successfully!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF4CAF50),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    is RestoreState.Error -> Text(
+                        text = restoreState.message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFEF5350),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    else -> {}
+                }
+            }
         }
     }
 }

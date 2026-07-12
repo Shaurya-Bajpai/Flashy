@@ -146,7 +146,7 @@ object FlashyAnalytics {
 
     private fun writeFirestorePremiumRecord(context: Context, paymentId: String) {
         val db = FirebaseFirestore.getInstance()
-        val data = hashMapOf(
+        val userRecord = hashMapOf(
             "isPremium"           to true,
             "paymentId"           to paymentId,
             "premiumActivatedAt"  to FieldValue.serverTimestamp(),
@@ -156,8 +156,21 @@ object FlashyAnalytics {
             "flavor"              to BuildConfig.ENVIRONMENT,
             "lastSeen"            to FieldValue.serverTimestamp(),
         )
+        // Per-device record (for total user counts + device info)
         db.collection("users")
             .document(deviceId(context))
-            .set(data, SetOptions.merge())
+            .set(userRecord, SetOptions.merge())
+
+        // Per-payment record — this is what enables cross-device restore.
+        // Any device can look up this document by payment ID to verify purchase.
+        val paymentRecord = hashMapOf(
+            "paymentId"           to paymentId,
+            "verifiedAt"          to FieldValue.serverTimestamp(),
+            "appVersion"          to BuildConfig.VERSION_NAME,
+            "androidVersion"      to Build.VERSION.SDK_INT,
+        )
+        db.collection("payments")
+            .document(paymentId)
+            .set(paymentRecord, SetOptions.merge())
     }
 }

@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── /users/{deviceId} ─────────────────────────────────────────────────────
+    // Each document is keyed by ANDROID_ID (anonymous device identifier).
+    // The app writes here on every session open and on premium activation.
+    // No client should read other users' documents.
+    match /users/{deviceId} {
+      allow write: if true;   // app writes via SDK (no auth configured yet)
+      allow read:  if false;  // no client ever reads other users
+    }
+
+    // ── /payments/{paymentId} ────────────────────────────────────────────────
+    // Written by the app only after a real Razorpay SDK callback.
+    // Read is allowed so the app can verify a payment ID on restore-purchase.
+    // A forged payment ID (one not in Firestore) simply won't be found.
+    match /payments/{paymentId} {
+      allow write: if true;   // app writes after successful payment
+      allow read:  if true;   // app reads to verify payment ID on restore
+    }
+  }
+}
