@@ -70,8 +70,6 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_CONTACTS
-import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_FILTER_MODE
-import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_APP_RULES
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RESPECT_SYSTEM_DND
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CHARGING_COMPLETE
@@ -131,8 +129,6 @@ fun FlashDashboardScreen(context: Context) {
     val callContacts          = prefs[FLASH_CALL_CONTACTS]       ?: ""
     val smsFilterMode         = prefs[FLASH_SMS_FILTER_MODE]     ?: "all"
     val smsContacts           = prefs[FLASH_SMS_CONTACTS]        ?: ""
-    val notifFilterMode       = prefs[FLASH_NOTIF_FILTER_MODE]   ?: "all"
-    val notifContacts         = prefs[FLASH_NOTIF_CONTACTS]      ?: ""
     val appRulesJson          = prefs[FLASH_APP_RULES]           ?: ""
     val respectSystemDnd      = prefs[FLASH_RESPECT_SYSTEM_DND]  ?: true
     val chargingCompleteFlash = prefs[FLASH_CHARGING_COMPLETE]   ?: false
@@ -414,7 +410,7 @@ fun FlashDashboardScreen(context: Context) {
                     isPremium = isPremium,
                     featureName = "Contact Filter",
                     featureIconRes = R.drawable.baseline_sms_24,
-                    featureDescription = "Flash only when specific people reach you",
+                    featureDescription = "Flash only when specific people call or text you",
                     accentColor = ColorApp,
                     onUpgradeClick = {
                         FlashyAnalytics.logPremiumGateTapped(context, "contact_filter")
@@ -426,23 +422,19 @@ fun FlashDashboardScreen(context: Context) {
                         callContacts     = callContacts,
                         smsFilterMode    = smsFilterMode,
                         smsContacts      = smsContacts,
-                        notifFilterMode  = notifFilterMode,
-                        notifContacts    = notifContacts,
                         onCallFilterModeChange  = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_FILTER_MODE,  v) } },
                         onCallContactsChange    = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_CALL_CONTACTS,     v) } },
                         onSmsFilterModeChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_FILTER_MODE,   v) } },
                         onSmsContactsChange     = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_SMS_CONTACTS,      v) } },
-                        onNotifFilterModeChange = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_FILTER_MODE, v) } },
-                        onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
                     )
                 }
             }
             item(key = "app_filter_card") {
                 PremiumGate(
                     isPremium = isPremium,
-                    featureName = "Per-App Rules",
+                    featureName = "App Notifications",
                     featureIconRes = R.drawable.baseline_notifications_active_24,
-                    featureDescription = "Block or customize flash behavior per installed app",
+                    featureDescription = "Choose which apps are allowed to flash you",
                     accentColor = ColorApp,
                     onUpgradeClick = {
                         FlashyAnalytics.logPremiumGateTapped(context, "per_app_rules")

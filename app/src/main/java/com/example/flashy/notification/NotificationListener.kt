@@ -9,8 +9,6 @@ import android.util.Log
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_APP_RULES
-import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_CONTACTS
-import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_FILTER_MODE
 import com.dsb.flashy.datastore.flashDataStore
@@ -76,37 +74,20 @@ class NotificationListener : NotificationListenerService() {
                 }
 
                 else -> {
-                    // Per-app rule takes precedence over the global Apps filter.
-                    // If a rule exists for this package, use its mode + contacts + speed/count.
-                    // If no rule exists, fall back to the global Apps filter.
-                    val appRules = (prefs[FLASH_APP_RULES] ?: "").toAppRuleList()
-                    val appRule  = appRules.find { it.packageName == pkg }
-                    val resolvedAppName = appRule?.appName?.ifBlank { resolveAppName(pkg) } ?: resolveAppName(pkg)
+                    // App notifications are strictly opt-in: only packages the user
+                    // has explicitly added to the per-app list ever flash. There's no
+                    // "flash for every app" fallback and no contact-name filtering here.
+                    val appRule = (prefs[FLASH_APP_RULES] ?: "").toAppRuleList()
+                        .find { it.packageName == pkg }
 
-                    if (appRule != null) {
-                        if (appRule.filterMode == "blocked") {
-                            Log.d("FlashNotif", "[$pkg] blocked by per-app rule — skipped")
-                            return@launch
-                        }
-                        if (appRule.filterMode == "selected") {
-                            if (!isAllowed(senderName, appRule.contacts)) {
-                                Log.d("FlashNotif", "[$pkg] \"$senderName\" not in per-app whitelist — skipped")
-                                return@launch
-                            }
-                        }
-                        triggerFlash("NOTIF", appRule.flashCount, appRule.flashSpeedMs,
-                            senderName = senderName, appPackage = pkg, appName = resolvedAppName)
-                    } else {
-                        val filterMode = prefs[FLASH_NOTIF_FILTER_MODE] ?: "all"
-                        if (filterMode == "selected") {
-                            val contacts = prefs[FLASH_NOTIF_CONTACTS] ?: ""
-                            if (!isAllowed(senderName, contacts)) {
-                                Log.d("FlashNotif", "[$pkg] \"$senderName\" not in global Apps whitelist — skipped")
-                                return@launch
-                            }
-                        }
-                        triggerFlash("NOTIF", senderName = senderName, appPackage = pkg, appName = resolvedAppName)
+                    if (appRule == null) {
+                        Log.d("FlashNotif", "[$pkg] not in selected apps — skipped")
+                        return@launch
                     }
+
+                    val resolvedAppName = appRule.appName.ifBlank { resolveAppName(pkg) }
+                    triggerFlash("NOTIF", appRule.flashCount, appRule.flashSpeedMs,
+                        senderName = senderName, appPackage = pkg, appName = resolvedAppName)
                 }
             }
         }

@@ -1,19 +1,11 @@
 package com.dsb.flashy.screen.dashboard.items.card
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,8 +13,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,8 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -57,8 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -70,11 +56,8 @@ import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
-import com.dsb.flashy.util.ContactAwareApps
 import com.dsb.flashy.util.InstalledApp
 import com.dsb.flashy.util.InstalledAppsProvider
-
-private val BlockRed = Color(0xFFEF4444)
 
 @Composable
 fun AppFilterCard(
@@ -91,13 +74,13 @@ fun AppFilterCard(
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Text(
-                text = "Per-App Flash Rules",
+                text = "App Notifications",
                 style = MaterialTheme.typography.titleLarge,
                 color = TextWarm
             )
             Spacer(Modifier.height(3.dp))
             Text(
-                text = "Flash only for specific people in each app",
+                text = "Pick which apps are allowed to trigger a flash",
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted
             )
@@ -105,7 +88,7 @@ fun AppFilterCard(
 
             if (rules.isEmpty()) {
                 Text(
-                    text = "No app rules yet — uses the global Apps filter above",
+                    text = "No apps selected — add one below to get flash alerts for its notifications",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextDim,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -172,9 +155,7 @@ fun AppFilterCard(
             onAppSelected = { app ->
                 val newRules = rules + AppFlashRule(
                     packageName = app.packageName,
-                    appName     = app.name,
-                    filterMode  = "all",
-                    contacts    = ""
+                    appName     = app.name
                 )
                 onAppRulesChange(newRules.toJsonString())
                 showPicker = false
@@ -183,9 +164,10 @@ fun AppFilterCard(
     }
 }
 
-// ── Per-app rule row ─────────────────────────────────────────────────────────
+// ── Per-app row ──────────────────────────────────────────────────────────────
+// An app in this list always flashes on notification — there's no per-app
+// mode or contact filtering. Removing it from the list is how you exclude it.
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AppRuleRow(
     context: Context,
@@ -193,29 +175,6 @@ private fun AppRuleRow(
     onUpdate: (AppFlashRule) -> Unit,
     onRemove: () -> Unit,
 ) {
-    val keyboard    = LocalSoftwareKeyboardController.current
-    var inputText   by remember { mutableStateOf("") }
-
-    // Utility apps (gallery, recorder, calculator, ...) never have a "who
-    // sent this" concept — offering per-contact filtering for them just
-    // dead-ends the user with a contact box they can never usefully fill in.
-    val supportsContacts = remember(rule.packageName) {
-        val category = try {
-            context.packageManager.getApplicationInfo(rule.packageName, 0).category
-        } catch (_: Exception) {
-            ApplicationInfo.CATEGORY_UNDEFINED
-        }
-        ContactAwareApps.supportsContactFiltering(rule.packageName, category)
-    }
-
-    // Self-heals rules saved back when an app was (mis)classified as
-    // contact-aware — never show the contact UI for one that isn't.
-    val isSelected  = rule.filterMode == "selected" && supportsContacts
-    val isBlocked   = rule.filterMode == "blocked"
-    val contactList = remember(rule.contacts) {
-        rule.contacts.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,14 +194,6 @@ private fun AppRuleRow(
                 letterSpacing = 0.5.sp,
                 modifier = Modifier.weight(1f)
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AppModeChip(text = "All", selected = rule.filterMode == "all") { onUpdate(rule.copy(filterMode = "all")) }
-                if (supportsContacts) {
-                    AppModeChip(text = "Selected", selected = isSelected) { onUpdate(rule.copy(filterMode = "selected")) }
-                }
-                AppModeChip(text = "Block", selected = isBlocked, accentColor = BlockRed) { onUpdate(rule.copy(filterMode = "blocked")) }
-            }
-            Spacer(Modifier.width(8.dp))
             Box(
                 modifier = Modifier
                     .size(20.dp)
@@ -260,133 +211,38 @@ private fun AppRuleRow(
             }
         }
 
-        if (isBlocked) {
-            // Blocked indicator — no speed/count or contact rows needed
+        // Speed row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Text(
-                text = "Flash is blocked for ${rule.appName}",
-                style = MaterialTheme.typography.bodySmall,
-                color = BlockRed.copy(alpha = 0.80f)
+                text = "SPEED",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextDim,
+                modifier = Modifier.width(44.dp)
             )
-        } else {
-            // Speed row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = "SPEED",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextDim,
-                    modifier = Modifier.width(44.dp)
-                )
-                AppPatternChip("Rapid",  rule.flashSpeedMs == 100) { onUpdate(rule.copy(flashSpeedMs = 100)) }
-                AppPatternChip("Normal", rule.flashSpeedMs == 200) { onUpdate(rule.copy(flashSpeedMs = 200)) }
-                AppPatternChip("Gentle", rule.flashSpeedMs == 400) { onUpdate(rule.copy(flashSpeedMs = 400)) }
-            }
-
-            // Count row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = "COUNT",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextDim,
-                    modifier = Modifier.width(44.dp)
-                )
-                AppPatternChip("3×",  rule.flashCount == 3)  { onUpdate(rule.copy(flashCount = 3))  }
-                AppPatternChip("5×",  rule.flashCount == 5)  { onUpdate(rule.copy(flashCount = 5))  }
-                AppPatternChip("10×", rule.flashCount == 10) { onUpdate(rule.copy(flashCount = 10)) }
-            }
+            AppPatternChip("Rapid",  rule.flashSpeedMs == 100) { onUpdate(rule.copy(flashSpeedMs = 100)) }
+            AppPatternChip("Normal", rule.flashSpeedMs == 200) { onUpdate(rule.copy(flashSpeedMs = 200)) }
+            AppPatternChip("Gentle", rule.flashSpeedMs == 400) { onUpdate(rule.copy(flashSpeedMs = 400)) }
         }
 
-        AnimatedVisibility(
-            visible = isSelected,
-            enter = expandVertically(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
-            exit  = shrinkVertically() + fadeOut()
+        // Count row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = {
-                            Text("Contact name…", style = MaterialTheme.typography.bodySmall, color = TextDim)
-                        },
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodySmall.copy(color = TextWarm),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {
-                            appendContact(inputText, rule, contactList, onUpdate) { inputText = "" }
-                            keyboard?.hide()
-                        }),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor   = Amber,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.15f),
-                            cursorColor          = Amber,
-                            focusedContainerColor   = Color.White.copy(alpha = 0.05f),
-                            unfocusedContainerColor = Color.White.copy(alpha = 0.03f),
-                        ),
-                        modifier = Modifier.weight(1f).height(52.dp),
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height(52.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                if (inputText.isNotBlank()) Amber.copy(alpha = 0.20f)
-                                else Color.White.copy(alpha = 0.04f)
-                            )
-                            .border(
-                                1.dp,
-                                if (inputText.isNotBlank()) Amber.copy(alpha = 0.55f)
-                                else Color.White.copy(alpha = 0.08f),
-                                RoundedCornerShape(10.dp)
-                            )
-                            .clickable(enabled = inputText.isNotBlank()) {
-                                appendContact(inputText, rule, contactList, onUpdate) { inputText = "" }
-                                keyboard?.hide()
-                            }
-                            .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Add",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (inputText.isNotBlank()) Amber else TextDim
-                        )
-                    }
-                }
-
-                if (contactList.isNotEmpty()) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement   = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        contactList.forEach { name ->
-                            AppContactChip(name = name, onRemove = {
-                                val updated = contactList.filter { it != name }.joinToString(",")
-                                onUpdate(rule.copy(contacts = updated))
-                            })
-                        }
-                    }
-                } else {
-                    Text(
-                        text = "No contacts added — flash is paused for ${rule.appName}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextDim
-                    )
-                }
-            }
+            Text(
+                text = "COUNT",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextDim,
+                modifier = Modifier.width(44.dp)
+            )
+            AppPatternChip("3×",  rule.flashCount == 3)  { onUpdate(rule.copy(flashCount = 3))  }
+            AppPatternChip("5×",  rule.flashCount == 5)  { onUpdate(rule.copy(flashCount = 5))  }
+            AppPatternChip("10×", rule.flashCount == 10) { onUpdate(rule.copy(flashCount = 10)) }
         }
     }
 }
@@ -509,25 +365,6 @@ private fun AppIconView(context: Context, packageName: String, sizeDp: Int) {
 }
 
 @Composable
-private fun AppModeChip(text: String, selected: Boolean, accentColor: Color = Amber, onClick: () -> Unit) {
-    val bg       by animateColorAsState(if (selected) accentColor.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f), label = "amc_bg_$text")
-    val border   by animateColorAsState(if (selected) accentColor.copy(alpha = 0.60f) else Color.White.copy(alpha = 0.10f), label = "amc_border_$text")
-    val textColor by animateColorAsState(if (selected) accentColor else TextDim, label = "amc_text_$text")
-    val shape = RoundedCornerShape(8.dp)
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = textColor,
-        modifier = Modifier
-            .clip(shape)
-            .background(bg, shape)
-            .border(1.dp, border, shape)
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 5.dp)
-    )
-}
-
-@Composable
 private fun AppPatternChip(text: String, selected: Boolean, onClick: () -> Unit) {
     val bg        by animateColorAsState(if (selected) Amber.copy(alpha = 0.20f) else Color.White.copy(alpha = 0.04f), label = "apc_bg_$text")
     val border    by animateColorAsState(if (selected) Amber.copy(alpha = 0.60f) else Color.White.copy(alpha = 0.10f), label = "apc_border_$text")
@@ -546,37 +383,6 @@ private fun AppPatternChip(text: String, selected: Boolean, onClick: () -> Unit)
     )
 }
 
-@Composable
-private fun AppContactChip(name: String, onRemove: () -> Unit) {
-    val shape = RoundedCornerShape(20.dp)
-    Row(
-        modifier = Modifier
-            .clip(shape)
-            .background(Amber.copy(alpha = 0.14f), shape)
-            .border(1.dp, Amber.copy(alpha = 0.30f), shape)
-            .padding(start = 10.dp, end = 6.dp, top = 5.dp, bottom = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Text(text = name, style = MaterialTheme.typography.labelSmall, color = Amber, maxLines = 1)
-        Box(
-            modifier = Modifier
-                .size(16.dp)
-                .clip(CircleShape)
-                .background(Amber.copy(alpha = 0.15f))
-                .clickable { onRemove() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Remove $name",
-                tint = Amber.copy(alpha = 0.80f),
-                modifier = Modifier.size(10.dp)
-            )
-        }
-    }
-}
-
 // ── Pure helpers ─────────────────────────────────────────────────────────────
 
 private fun Drawable.toBitmap(): Bitmap {
@@ -590,19 +396,4 @@ private fun Drawable.toBitmap(): Bitmap {
     setBounds(0, 0, canvas.width, canvas.height)
     draw(canvas)
     return bmp
-}
-
-private fun appendContact(
-    input: String,
-    rule: AppFlashRule,
-    contactList: List<String>,
-    onUpdate: (AppFlashRule) -> Unit,
-    clearInput: () -> Unit,
-) {
-    val trimmed = input.trim()
-    if (trimmed.isBlank()) return
-    if (!contactList.any { it.equals(trimmed, ignoreCase = true) }) {
-        onUpdate(rule.copy(contacts = (contactList + trimmed).joinToString(",")))
-    }
-    clearInput()
 }

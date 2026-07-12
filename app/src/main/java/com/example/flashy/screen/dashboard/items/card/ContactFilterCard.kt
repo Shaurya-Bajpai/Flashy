@@ -53,27 +53,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
 import com.dsb.flashy.ui.theme.Amber
-import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.ColorCall
 import com.dsb.flashy.ui.theme.ColorSms
 import com.dsb.flashy.ui.theme.TextDim
 import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
 
+// App notifications aren't filtered by contact name here — see AppFilterCard,
+// where the user picks which apps are allowed to flash at all.
 @Composable
 fun ContactFilterCard(
     callFilterMode: String,
     callContacts: String,
     smsFilterMode: String,
     smsContacts: String,
-    notifFilterMode: String,
-    notifContacts: String,
     onCallFilterModeChange: (String) -> Unit,
     onCallContactsChange: (String) -> Unit,
     onSmsFilterModeChange: (String) -> Unit,
     onSmsContactsChange: (String) -> Unit,
-    onNotifFilterModeChange: (String) -> Unit,
-    onNotifContactsChange: (String) -> Unit,
 ) {
     GlassMorphismCard(accentColor = ColorSms) {
         Column(
@@ -113,18 +110,6 @@ fun ContactFilterCard(
                 contacts = smsContacts,
                 onFilterModeChange = onSmsFilterModeChange,
                 onContactsChange = onSmsContactsChange
-            )
-
-            FilterDivider()
-
-            ContactSection(
-                iconRes = R.drawable.baseline_notifications_active_24,
-                label = "Apps",
-                accentColor = ColorApp,
-                filterMode = notifFilterMode,
-                contacts = notifContacts,
-                onFilterModeChange = onNotifFilterModeChange,
-                onContactsChange = onNotifContactsChange
             )
         }
     }

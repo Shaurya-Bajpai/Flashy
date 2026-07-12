@@ -36,15 +36,16 @@ object GlobalSettingsStore {
 
     // Contact filter — "all" flashes for everyone; "selected" only flashes for listed names
     // Contacts stored as comma-separated display names, e.g. "Mom,John Smith,Work"
+    // Calls and SMS only — app notifications are filtered by app selection instead
+    // (see FLASH_APP_RULES), not by contact name.
     val FLASH_CALL_FILTER_MODE  = stringPreferencesKey("flash_call_filter_mode")   // "all" | "selected"
     val FLASH_CALL_CONTACTS     = stringPreferencesKey("flash_call_contacts")       // "Name1,Name2"
     val FLASH_SMS_FILTER_MODE   = stringPreferencesKey("flash_sms_filter_mode")    // "all" | "selected"
     val FLASH_SMS_CONTACTS      = stringPreferencesKey("flash_sms_contacts")        // "Name1,Name2"
-    val FLASH_NOTIF_FILTER_MODE = stringPreferencesKey("flash_notif_filter_mode")  // "all" | "selected"
-    val FLASH_NOTIF_CONTACTS    = stringPreferencesKey("flash_notif_contacts")      // "Name1,Name2"
 
-    // Per-app rules — JSON array of AppFlashRule objects
-    // Each rule overrides the global Apps filter for that specific app
+    // Per-app rules — JSON array of AppFlashRule objects.
+    // Apps are strictly opt-in: a notification only flashes if its package is in
+    // this list. There's no "flash for every app" fallback.
     val FLASH_APP_RULES = stringPreferencesKey("flash_app_rules")
 
     // Feature 11: respect Android system DND (on by default)
@@ -96,7 +97,7 @@ object GlobalSettingsStore {
             prefs[key] ?: when (key) {
                 FLASH_DND_START -> "00:00"
                 FLASH_DND_END -> "07:00"
-                FLASH_CALL_FILTER_MODE, FLASH_SMS_FILTER_MODE, FLASH_NOTIF_FILTER_MODE -> "all"
+                FLASH_CALL_FILTER_MODE, FLASH_SMS_FILTER_MODE -> "all"
                 else -> ""
             }
         }
