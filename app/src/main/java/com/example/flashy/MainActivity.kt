@@ -33,12 +33,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Request only actual runtime permissions — BIND_NOTIFICATION_LISTENER_SERVICE
-        // is a special permission granted through system settings, not here.
+        // Request only the permissions needed to start the service.
+        // READ_PHONE_STATE is requested progressively when the user enables the Calls feature.
         val runtimePermissions = buildList {
             add(Manifest.permission.CAMERA)
-            add(Manifest.permission.READ_PHONE_STATE)
-            add(Manifest.permission.RECEIVE_SMS)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 add(Manifest.permission.POST_NOTIFICATIONS)
             }

@@ -3,6 +3,7 @@ package com.dsb.flashy.managers
 import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.os.PowerManager
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,14 @@ class FlashController(private val context: Context) {
     private val cameraId: String? = findFlashCamera()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var blinkJob: Job? = null
+
+    // PARTIAL_WAKE_LOCK keeps the CPU running while the screen stays off.
+    // This is essential on budget devices (Xiaomi, Oppo, Vivo) that aggressively
+    // suspend background processes — without it, a 2-second blink sequence may
+    // be cut short before it finishes.
+    private val wakeLock: PowerManager.WakeLock =
+        (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Flashy:FlashController")
 
     private fun findFlashCamera(): String? = try {
         cameraManager.cameraIdList.firstOrNull { id ->
@@ -45,6 +54,8 @@ class FlashController(private val context: Context) {
 
     fun blinkFlashIndefinitely(speedMs: Long = 300L) {
         blinkJob?.cancel()
+        // 60-second safety timeout — longer than any realistic ringtone.
+        if (!wakeLock.isHeld) wakeLock.acquire(60_000L)
         blinkJob = scope.launch {
             try {
                 while (isActive) {
@@ -57,12 +68,16 @@ class FlashController(private val context: Context) {
                 e.printStackTrace()
             } finally {
                 turnOff()
+                if (wakeLock.isHeld) wakeLock.release()
             }
         }
     }
 
-    fun blinkFlash(speedMs: Long = 300L, repeatCount: Int = 2) {
+    fun blinkFlash(speedMs: Long = 300L, repeatCount: Int = 5) {
         blinkJob?.cancel()
+        // Safety timeout: repeatCount blinks × 2 intervals × speedMs, plus a 1-second buffer.
+        val timeout = repeatCount * 2 * speedMs + 1_000L
+        if (!wakeLock.isHeld) wakeLock.acquire(timeout)
         blinkJob = scope.launch {
             try {
                 repeat(repeatCount) {
@@ -75,6 +90,7 @@ class FlashController(private val context: Context) {
                 e.printStackTrace()
             } finally {
                 turnOff()
+                if (wakeLock.isHeld) wakeLock.release()
             }
         }
     }
@@ -83,6 +99,7 @@ class FlashController(private val context: Context) {
         blinkJob?.cancel()
         blinkJob = null
         turnOff()
+        if (wakeLock.isHeld) wakeLock.release()
     }
 
     /** Call this when the owning Service is destroyed. */
