@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
 import com.dsb.flashy.screen.dash.items.ModeChip
+import com.example.flashy.screen.dashboard.items.MainCardHeading
+
 //import com.dsb.flashy.screen.dashboard.items.ModeChip
 
 @Composable
@@ -33,12 +36,9 @@ fun AdaptiveRingerCard(
 
     GlassMorphismCard {
         Column(modifier = Modifier.padding(24.dp)) {
-            Text(
+            MainCardHeading(
                 text = "Adaptive Modes",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 20.dp)
             )
 
 //            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -72,4 +72,13 @@ fun AdaptiveRingerCard(
             }
         }
     }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun AdaptiveRingerCardPreview() {
+    AdaptiveRingerCard(
+        selectedMode = "Normal",
+        onModeChange = {}
+    )
 }

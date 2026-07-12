@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
+import com.example.flashy.screen.dashboard.items.MainCardHeading
 
 @Composable
 fun IntelligentBatteryCard(
@@ -29,23 +31,10 @@ fun IntelligentBatteryCard(
 ) {
     GlassMorphismCard {
         Column(modifier = Modifier.padding(24.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_battery_2_bar_24),
-                    contentDescription = null,
-                    tint = Color(0xFFFF9800),
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Smart Battery: ${(threshold * 100).toInt()}%",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
+            MainCardHeading(
+                text = "Smart Battery: ${(threshold * 100).toInt()}%",
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
 
             Slider(
                 value = threshold,
@@ -60,4 +49,14 @@ fun IntelligentBatteryCard(
             )
         }
     }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun IntelligentBatteryCardPreview() {
+    IntelligentBatteryCard(
+        threshold = 0.2f,
+        onThresholdChange = {},
+        onThresholdChangeFinished = {}
+    )
 }

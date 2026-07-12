@@ -15,38 +15,42 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
+import com.dsb.flashy.datastore.GlobalSettingsStore
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
 import com.dsb.flashy.ui.theme.ColorApp
 import com.dsb.flashy.ui.theme.ColorCall
 import com.dsb.flashy.ui.theme.ColorSms
 import com.dsb.flashy.ui.theme.TextDim
-import com.dsb.flashy.ui.theme.TextMuted
 import com.dsb.flashy.ui.theme.TextWarm
+import com.example.flashy.screen.dashboard.items.MainCardHeading
 
 // Speed and count option descriptors — kept package-private to this file.
 private data class SpeedOption(val label: String, val ms: Int)
@@ -86,44 +90,30 @@ fun FlashPatternCard(
     onNotifCountChange: (Int) -> Unit = {},
     onNotifSpeedChange: (Int) -> Unit = {},
 ) {
+    val context = LocalContext.current
+
+    // Collect settings from GlobalSettingsStore
+    val flashGlobal by GlobalSettingsStore.get(context, FLASH_GLOBAL).collectAsState(initial = true)
+    val flashCall by GlobalSettingsStore.get(context, FLASH_CALL).collectAsState(initial = true)
+    val flashSms by GlobalSettingsStore.get(context, FLASH_SMS).collectAsState(initial = true)
+    val flashApps by GlobalSettingsStore.get(context, FLASH_NOTIFICATIONS).collectAsState(initial = true)
+
+    if(!flashGlobal || !flashCall && !flashSms && !flashApps) return
+
     GlassMorphismCard {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            // ── Decorative ambient glow, echoes the dashboard header card ──
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .offset(x = 240.dp, y = (-40).dp)
-                    .clip(CircleShape)
-                    .background(ColorCall.copy(alpha = 0.08f))
-            )
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .offset(x = (-20).dp, y = 160.dp)
-                    .clip(CircleShape)
-                    .background(ColorApp.copy(alpha = 0.06f))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            MainCardHeading(
+                text = "Flash Pattern",
+                modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                Text(
-                    text = "Flash Pattern",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = TextWarm
-                )
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    text = "Customize speed and count per alert type",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMuted
-                )
-                Spacer(Modifier.height(20.dp))
-
-                // ── Calls ────────────────────────────────────────────────
+            // ── Calls ────────────────────────────────────────────────
+            if(flashCall) {
                 PatternSection(
                     iconVector = Icons.Default.Phone,
                     label = "Calls",
@@ -134,10 +124,11 @@ fun FlashPatternCard(
                     onSpeedChange = onCallSpeedChange,
                     onCountChange = onCallCountChange
                 )
-
                 Spacer(Modifier.height(14.dp))
+            }
 
-                // ── SMS ──────────────────────────────────────────────────
+            // ── SMS ──────────────────────────────────────────────────
+            if(flashSms) {
                 PatternSection(
                     iconRes = R.drawable.baseline_sms_24,
                     label = "SMS",
@@ -148,10 +139,11 @@ fun FlashPatternCard(
                     onSpeedChange = onSmsSpeedChange,
                     onCountChange = onSmsCountChange
                 )
-
                 Spacer(Modifier.height(14.dp))
+            }
 
-                // ── Apps ─────────────────────────────────────────────────
+            // ── Apps ─────────────────────────────────────────────────
+            if(flashApps) {
                 PatternSection(
                     iconRes = R.drawable.baseline_notifications_active_24,
                     label = "Apps",

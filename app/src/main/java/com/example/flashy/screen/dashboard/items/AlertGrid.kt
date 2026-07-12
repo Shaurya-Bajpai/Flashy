@@ -12,10 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.screen.dashboard.items.card.AlertTypeCard
 import com.dsb.flashy.screen.dashboard.items.card.GlassMorphismCard
+import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
+import com.example.flashy.screen.dashboard.items.MainCardHeading
 
 @Composable
 fun AlertGrid(
@@ -28,11 +31,8 @@ fun AlertGrid(
 ) {
     GlassMorphismCard {
         Column(modifier = Modifier.padding(24.dp)) {
-            Text(
+            MainCardHeading(
                 text = "Alert Types",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
@@ -68,4 +68,17 @@ fun AlertGrid(
             }
         }
     }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun AlertGridPreview() {
+    AlertGrid(
+        flashCall = true,
+        flashSms = false,
+        flashNotify = true,
+        onFlashCallChange = {},
+        onFlashSmsChange = {},
+        onFlashNotifyChange = {}
+    )
 }

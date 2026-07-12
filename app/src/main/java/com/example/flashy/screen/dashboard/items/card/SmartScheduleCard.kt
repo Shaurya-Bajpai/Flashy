@@ -17,10 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dsb.flashy.R
 import com.dsb.flashy.screen.dashboard.items.TimeSelector
+import com.example.flashy.screen.dashboard.items.MainCardHeading
 
 @Composable
 fun SmartScheduleCard(
@@ -31,23 +33,10 @@ fun SmartScheduleCard(
 ) {
     GlassMorphismCard {
         Column(modifier = Modifier.padding(24.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_schedule_24),
-                    contentDescription = null,
-                    tint = Color(0xFFE91E63),
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Smart Schedule",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
+            MainCardHeading(
+                text = "Smart Schedule",
+                modifier = Modifier.padding(bottom = 20.dp)
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -69,4 +58,15 @@ fun SmartScheduleCard(
             }
         }
     }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun SmartScheduleCardPreview() {
+    SmartScheduleCard(
+        startTime = "22:00",
+        endTime = "06:00",
+        onStartTimeChange = {},
+        onEndTimeChange = {}
+    )
 }
