@@ -59,6 +59,9 @@ object GlobalSettingsStore {
     // Feature 8: flash event history — JSON array, newest first, capped at 30 entries
     val FLASH_HISTORY = stringPreferencesKey("flash_history")
 
+    // Onboarding — false until the user completes the first-launch walkthrough
+    val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
+
     // Feature 4: sound reactive flash (off by default; requires RECORD_AUDIO)
     val FLASH_SOUND_REACTIVE    = booleanPreferencesKey("flash_sound_reactive")
     val FLASH_SOUND_SENSITIVITY = intPreferencesKey("flash_sound_sensitivity")    // 1–100
@@ -66,7 +69,7 @@ object GlobalSettingsStore {
     fun get(context: Context, key: Preferences.Key<Boolean>): Flow<Boolean> {
         return context.flashDataStore.data.map { prefs ->
             prefs[key] ?: when (key) {
-                FLASH_CHARGING_COMPLETE, FLASH_LOW_BATTERY_ALERT, FLASH_SOUND_REACTIVE -> false   // opt-in
+                FLASH_CHARGING_COMPLETE, FLASH_LOW_BATTERY_ALERT, FLASH_SOUND_REACTIVE, ONBOARDING_COMPLETE -> false   // opt-in
                 else -> true
             }
         }
