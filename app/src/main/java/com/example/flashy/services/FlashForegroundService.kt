@@ -37,6 +37,8 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_LOW_BATTERY_ALERT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_END
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_DND_START
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_GLOBAL
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_REACTIVE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_SENSITIVITY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIFICATIONS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_COUNT
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
@@ -52,7 +54,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import kotlin.text.get
@@ -80,6 +84,19 @@ class FlashCallService : Service() {
             val isCharging  = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL
             val isDischarging = !isCharging
+
+            // Reactively start/stop sound reactive flash whenever the setting changes.
+            serviceScope.launch {
+                flashDataStore.data
+                    .map { prefs ->
+                        (prefs[FLASH_SOUND_REACTIVE] ?: false) to (prefs[FLASH_SOUND_SENSITIVITY] ?: 50)
+                    }
+                    .distinctUntilChanged()
+                    .collect { (enabled, sensitivity) ->
+                        if (enabled) flashController.startSoundReactive(sensitivity)
+                        else flashController.stopSoundReactive()
+                    }
+            }
 
             // ── Charging complete: 99 → 100 while on charger ─────────────────
             if (pct == 100 && isCharging && prevBatteryPct in 0..99) {

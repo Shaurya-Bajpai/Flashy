@@ -55,6 +55,8 @@ import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_FILTER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_NOTIF_SPEED_MS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_RINGER_MODE
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SCREEN_OFF_ONLY
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_REACTIVE
+import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SOUND_SENSITIVITY
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_CONTACTS
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_SMS_COUNT
@@ -78,6 +80,7 @@ import com.dsb.flashy.screen.dashboard.items.card.FlashHistoryCard
 import com.dsb.flashy.screen.dashboard.items.card.FlashPatternCard
 import com.dsb.flashy.screen.dashboard.items.card.IntelligentBatteryCard
 import com.dsb.flashy.screen.dashboard.items.card.MasterControlCard
+import com.dsb.flashy.screen.dashboard.items.card.SoundReactiveCard
 import com.dsb.flashy.screen.dashboard.items.card.QuickAccessCard
 import com.dsb.flashy.screen.dashboard.items.card.SmartScheduleCard
 import kotlinx.coroutines.delay
@@ -132,6 +135,9 @@ fun FlashDashboardScreen(context: Context) {
     val chargingCompleteFlash by GlobalSettingsStore.get(context, FLASH_CHARGING_COMPLETE).collectAsState(initial = false)
     val lowBatteryAlert by GlobalSettingsStore.get(context, FLASH_LOW_BATTERY_ALERT).collectAsState(initial = false)
     val flashHistoryJson by GlobalSettingsStore.getString(context, FLASH_HISTORY).collectAsState(initial = "")
+    val soundReactive by GlobalSettingsStore.get(context, FLASH_SOUND_REACTIVE).collectAsState(initial = false)
+    val soundSensitivity by GlobalSettingsStore.getInt(context, FLASH_SOUND_SENSITIVITY).collectAsState(initial = 50)
+    var soundSensitivitySlider by remember { mutableStateOf(50) }
 
     // Flash pattern settings
     val callCount    by GlobalSettingsStore.getInt(context, FLASH_CALL_COUNT).collectAsState(initial = 0)
@@ -151,6 +157,17 @@ fun FlashDashboardScreen(context: Context) {
             scope.launch { GlobalSettingsStore.set(context, FLASH_CALL, true) }
         }
     }
+
+    val soundReactiveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, true) }
+        }
+    }
+
+    // Keep local slider in sync with DataStore (e.g. first load)
+    LaunchedEffect(soundSensitivity) { soundSensitivitySlider = soundSensitivity }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -308,6 +325,31 @@ fun FlashDashboardScreen(context: Context) {
                     onNotifContactsChange   = { v -> scope.launch { GlobalSettingsStore.edit(context, FLASH_NOTIF_CONTACTS,    v) } },
                 )
             }
+
+            item {
+                SoundReactiveCard(
+                    enabled = soundReactive,
+                    sensitivity = soundSensitivitySlider,
+                    onEnabledChange = { enabled ->
+                        if (!enabled) {
+                            scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, false) }
+                        } else if (ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            scope.launch { GlobalSettingsStore.set(context, FLASH_SOUND_REACTIVE, true) }
+                        } else {
+                            soundReactiveLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    },
+                    onSensitivityChange = { soundSensitivitySlider = it },
+                    onSensitivityChangeFinished = {
+                        scope.launch {
+                            context.flashDataStore.edit { it[FLASH_SOUND_SENSITIVITY] = soundSensitivitySlider }
+                        }
+                    }
+                )
+            } 
 
             item {
                 AppFilterCard(
