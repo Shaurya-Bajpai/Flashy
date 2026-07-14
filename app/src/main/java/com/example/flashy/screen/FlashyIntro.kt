@@ -1,344 +1,367 @@
 package com.dsb.flashy.screen
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlin.math.*
 import com.dsb.flashy.R
+import com.dsb.flashy.ui.theme.Amber
+import com.dsb.flashy.ui.theme.AmberDeep
+import com.dsb.flashy.ui.theme.TextDim
+import com.dsb.flashy.ui.theme.TextMuted
+import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+
+// Total screen time: ~2.5 s
+//   150 ms → icon bursts in
+//   450 ms → title slides up  (600 ms from start)
+//   350 ms → tagline + bar    (950 ms from start)
+//  1600 ms → onComplete       (2550 ms from start)
 
 @Composable
 fun FlashyIntroScreen(onComplete: () -> Unit) {
     var phase by remember { mutableIntStateOf(0) }
+    var startProgress by remember { mutableStateOf(false) }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "intro")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
+    LaunchedEffect(Unit) {
+        delay(150)
+        phase = 1           // icon
+        delay(450)
+        phase = 2           // title
+        delay(350)
+        phase = 3           // tagline
+        startProgress = true
+        delay(1600)
+        onComplete()
+    }
 
-    val rotationAngle by infiniteTransition.animateFloat(
+    val infiniteTransition = rememberInfiniteTransition(label = "intro_inf")
+
+    // Arc rotating around the icon
+    val arcAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            animation = tween(1400, easing = LinearEasing)
         ),
-        label = "rotation"
+        label = "arc"
     )
 
-    val flashAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
+    // Slow outer-particle orbit
+    val orbitAngle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing)
+        ),
+        label = "orbit"
+    )
+
+    // Gentle glow pulse on the icon ring
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.55f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(400, easing = FastOutSlowInEasing),
+            animation = tween(1000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
-        label = "flash"
+        label = "glow"
     )
 
-    LaunchedEffect(Unit) {
-        delay(500)
-        phase = 1
-        delay(1000)
-        phase = 2
-        delay(1500)
-        phase = 3
-        delay(3000)
-        onComplete()
-    }
+    // Progress bar fill (0 → 1 over 1600 ms, starts when phase 3 triggers)
+    val progressTarget = if (startProgress) 1f else 0f
+    val progress by animateFloatAsState(
+        targetValue = progressTarget,
+        animationSpec = tween(1600, easing = FastOutSlowInEasing),
+        label = "progress"
+    )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.radialGradient(
+                Brush.radialGradient(
                     colors = listOf(
-                        Color(0xFF0D1B2A),
-                        Color(0xFF1B263B),
-                        Color(0xFF415A77)
+                        Color(0xFF1A0800),
+                        Color(0xFF0C0500),
+                        Color(0xFF060401)
                     ),
-                    radius = 1500f
+                    radius = 1800f
                 )
             )
     ) {
-        // Animated Background Particles
-        ParticleBackground(rotationAngle)
+        // Ambient particle field — subtle amber dots orbiting slowly
+        AmbientOrbs(orbitAngle)
 
-        // Lightning Effect
-        LightningEffect(flashAlpha, phase)
-
-        // Main Content
+        // Main content column
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp),
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Logo with Flash Animation
+
+            // ── Icon block ───────────────────────────────────────────
             AnimatedVisibility(
                 visible = phase >= 1,
                 enter = scaleIn(
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness = Spring.StiffnessLow
-                    )
-                ) + fadeIn(animationSpec = tween(800))
+                    ),
+                    initialScale = 0.4f
+                ) + fadeIn(tween(400))
             ) {
                 Box(
-                    modifier = Modifier
-                        .size(150.dp)
-                        .scale(pulseScale)
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    Color(0xFFFFD700).copy(alpha = flashAlpha),
-                                    Color(0xFFFFA500).copy(alpha = flashAlpha * 0.7f),
-                                    Color(0xFFFF6B35).copy(alpha = flashAlpha * 0.5f)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                        .rotate(rotationAngle),
+                    modifier = Modifier.size(180.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_flash_on_24),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(80.dp)
+                    // Rotating sweep arc drawn on a Canvas inside the 180 dp box
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+                        val r  = 82.dp.toPx()
+                        drawArc(
+                            brush = Brush.sweepGradient(
+                                colorStops = arrayOf(
+                                    0.00f to Color.Transparent,
+                                    0.50f to Amber.copy(alpha = 0.55f),
+                                    0.75f to AmberDeep.copy(alpha = 0.75f),
+                                    1.00f to Color.Transparent
+                                ),
+                                center = Offset(cx, cy)
+                            ),
+                            startAngle = arcAngle,
+                            sweepAngle = 260f,
+                            useCenter  = false,
+                            style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round),
+                            topLeft = Offset(cx - r, cy - r),
+                            size    = Size(r * 2f, r * 2f)
+                        )
+                    }
+
+                    // Outer glow ring (pulsing)
+                    Box(
+                        modifier = Modifier
+                            .size(136.dp)
+                            .background(
+                                Brush.radialGradient(
+                                    colors = listOf(
+                                        Amber.copy(alpha = glowPulse * 0.22f),
+                                        Color.Transparent
+                                    )
+                                ),
+                                CircleShape
+                            )
                     )
+
+                    // Icon circle
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Amber.copy(alpha = 0.10f), CircleShape)
+                            .border(1.5.dp, Amber.copy(alpha = 0.38f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_flash_on_24),
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(52.dp)
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.height(44.dp))
 
-            // Replace slideInUp with slideInVertically
+            // ── Title ────────────────────────────────────────────────
             AnimatedVisibility(
                 visible = phase >= 2,
                 enter = slideInVertically(
-                    initialOffsetY = { it }, // Slide in from the bottom
+                    initialOffsetY = { it / 2 },
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
+                        stiffness = Spring.StiffnessMediumLow
                     )
-                ) + fadeIn(animationSpec = tween(600))
+                ) + fadeIn(tween(400))
             ) {
                 Text(
-                    text = "Flashy",
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .graphicsLayer {
-                            shadowElevation = 8.dp.toPx()
-                            spotShadowColor = Color(0xFFFFD700)
-                            ambientShadowColor = Color(0xFFFFD700)
-                        }
+                    text = "FLASHY",
+                    style = TextStyle(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Amber, AmberDeep, Amber)
+                        )
+                    ),
+                    fontSize = 54.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 8.sp,
+                    textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Tagline Animation
+            // ── Tagline ──────────────────────────────────────────────
             AnimatedVisibility(
                 visible = phase >= 3,
-                enter = slideInVertically(
-                    initialOffsetY = { it }, // Slide in from the bottom
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeIn(animationSpec = tween(800))
+                enter = fadeIn(tween(500))
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "PREMIUM FLASH ALERTS",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFFD700),
+                        text = "Never miss what matters",
+                        fontSize = 15.sp,
+                        color = TextMuted,
                         textAlign = TextAlign.Center,
-                        letterSpacing = 2.sp
+                        letterSpacing = 0.5.sp
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Never Miss a Notification",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    )
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FeaturePill("Calls")
+                        FeaturePill("Messages")
+                        FeaturePill("Apps")
+                    }
                 }
             }
         }
 
-        // Bottom Loading Indicator
-        Box(
+        // ── Progress bar — bottom of screen ─────────────────────────
+        AnimatedVisibility(
+            visible = phase >= 3,
+            enter = fadeIn(tween(300)),
             modifier = Modifier
-                .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
+                .padding(bottom = 52.dp)
         ) {
-            AnimatedVisibility(
-                visible = phase >= 2,
-                enter = fadeIn(animationSpec = tween(500))
-            ) {
-                LoadingIndicator()
-            }
-        }
-    }
-}
-
-@Composable
-fun ParticleBackground(rotation: Float) {
-    Canvas(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val center = Offset(size.width / 2, size.height / 2)
-        val particleCount = 20
-        val baseRadius = size.minDimension / 3
-
-        repeat(particleCount) { i ->
-            val angle = (rotation + i * (360f / particleCount)) * PI / 180
-            val radius = baseRadius + (i % 3) * 50f
-            val particleSize = (8f + (i % 4) * 3f)
-
-            val x = center.x + cos(angle).toFloat() * radius
-            val y = center.y + sin(angle).toFloat() * radius
-
-            drawCircle(
-                color = Color(0xFFFFD700).copy(alpha = 0.3f - (i % 3) * 0.1f),
-                radius = particleSize,
-                center = Offset(x, y)
-            )
-        }
-    }
-}
-
-@Composable
-fun LightningEffect(alpha: Float, phase: Int) {
-    if (phase >= 2) {
-        Canvas(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val center = Offset(size.width / 2, size.height / 2)
-            val strokeWidth = 3f
-
-            // Lightning bolts
-            repeat(6) { i ->
-                val angle = i * 60f * PI / 180
-                val startRadius = 100f
-                val endRadius = 200f
-
-                val startX = center.x + cos(angle).toFloat() * startRadius
-                val startY = center.y + sin(angle).toFloat() * startRadius
-                val endX = center.x + cos(angle).toFloat() * endRadius
-                val endY = center.y + sin(angle).toFloat() * endRadius
-
-                drawLine(
-                    color = Color(0xFFFFD700).copy(alpha = alpha * 0.7f),
-                    start = Offset(startX, startY),
-                    end = Offset(endX, endY),
-                    strokeWidth = strokeWidth,
-                    cap = StrokeCap.Round
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun LoadingIndicator() {
-    val infiniteTransition = rememberInfiniteTransition(label = "loading")
-    val progress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "progress"
-    )
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .width(200.dp)
-                .height(4.dp)
-                .background(
-                    Color.White.copy(alpha = 0.2f),
-                    RoundedCornerShape(2.dp)
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width((200 * progress).dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFFFFD700),
-                                Color(0xFFFFA500)
-                            )
-                        ),
-                        shape = RoundedCornerShape(2.dp)
-                    )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            repeat(3) { index ->
-                val dotScale by infiniteTransition.animateFloat(
-                    initialValue = 0.8f,
-                    targetValue = 1.2f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(600, delayMillis = index * 200),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "dot_$index"
-                )
-
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
-                        .scale(dotScale)
-                        .background(
-                            Color(0xFFFFD700),
-                            CircleShape
-                        )
+                        .width(200.dp)
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(Amber.copy(alpha = 0.14f))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(progress)
+                            .background(
+                                Brush.horizontalGradient(listOf(Amber, AmberDeep)),
+                                RoundedCornerShape(2.dp)
+                            )
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "Loading...",
+                    fontSize = 11.sp,
+                    color = TextDim,
+                    letterSpacing = 1.sp
+                )
+            }
+        }
+    }
+}
+
+// ── Small feature label pill ──────────────────────────────────────────────
+
+@Composable
+private fun FeaturePill(label: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Amber.copy(alpha = 0.08f))
+            .border(0.5.dp, Amber.copy(alpha = 0.20f), RoundedCornerShape(20.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = Amber.copy(alpha = 0.75f),
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+// ── Ambient particle orbs (background layer) ─────────────────────────────
+
+@Composable
+private fun AmbientOrbs(orbitAngle: Float) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+
+        val orbits = listOf(
+            Triple(size.minDimension * 0.38f, 10, 0.18f),  // inner ring, 10 dots
+            Triple(size.minDimension * 0.52f,  7, 0.11f),  // outer ring, 7 dots
+        )
+
+        orbits.forEach { (radius, count, alpha) ->
+            repeat(count) { i ->
+                val angle = (orbitAngle + i * (360f / count)) * PI.toFloat() / 180f
+                val x = cx + cos(angle) * radius
+                val y = cy + sin(angle) * radius
+                drawCircle(
+                    color = Amber.copy(alpha = alpha),
+                    radius = 3.dp.toPx(),
+                    center = Offset(x, y)
                 )
             }
         }
