@@ -58,10 +58,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationManagerCompat
@@ -72,6 +74,7 @@ import com.dsb.flashy.R
 import com.dsb.flashy.datastore.GlobalSettingsStore
 import com.dsb.flashy.datastore.GlobalSettingsStore.FLASH_CALL
 import com.dsb.flashy.datastore.GlobalSettingsStore.ONBOARDING_COMPLETE
+import com.dsb.flashy.managers.FlashController
 import com.dsb.flashy.ui.theme.Amber
 import com.dsb.flashy.ui.theme.AmberDeep
 import com.dsb.flashy.ui.theme.ColorCall
@@ -145,8 +148,10 @@ fun OnboardingScreen(context: Context, onComplete: () -> Unit) {
     }
 
     fun finish() {
-        scope.launch { GlobalSettingsStore.set(context, ONBOARDING_COMPLETE, true) }
-        onComplete()
+        scope.launch {
+            GlobalSettingsStore.set(context, ONBOARDING_COMPLETE, true)
+            onComplete()
+        }
     }
 
     // ── Layout ────────────────────────────────────────────────────────────
@@ -206,8 +211,15 @@ fun OnboardingScreen(context: Context, onComplete: () -> Unit) {
                         },
                         onContinue = { step = STEP_DONE }
                     )
-                    STEP_DONE    -> DoneStep(onStart = { finish() })
-                }
+                    STEP_DONE -> DoneStep(
+                        onStart = { finish() },
+                        onTestFlash = {
+                            FlashController(context).blinkFlash(
+                                speedMs = 200,
+                                repeatCount = 3
+                            )
+                        }
+                    )                }
             }
         }
 
@@ -397,7 +409,7 @@ private fun WelcomeStep(onNext: () -> Unit) {
             text = "Your camera flash becomes your personal alert system. Never miss a call, message, or notification — even on silent mode.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextMuted,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Justify,
             lineHeight = 24.sp
         )
 
@@ -517,7 +529,7 @@ private fun CallsStep(callGranted: Boolean, onAllow: () -> Unit, onSkip: () -> U
             text = "Allow Flashy to detect incoming phone calls so your flash blinks whenever someone calls you.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextMuted,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Justify,
             lineHeight = 24.sp
         )
 
@@ -561,10 +573,10 @@ private fun BatteryStep(batteryExempt: Boolean, onFix: () -> Unit, onContinue: (
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "On most phones — Xiaomi, Oppo, Realme, Samsung — the OS kills apps when the screen turns off. One tap prevents this permanently.",
+            text = "On most phones the OS kills apps when the screen turns off. One tap prevents this permanently.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextMuted,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Justify,
             lineHeight = 24.sp
         )
 
@@ -620,7 +632,10 @@ private fun BatteryStep(batteryExempt: Boolean, onFix: () -> Unit, onContinue: (
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun DoneStep(onStart: () -> Unit) {
+private fun DoneStep(
+    onStart: () -> Unit,
+    onTestFlash: () -> Unit
+){
     val infinite = rememberInfiniteTransition(label = "done_pulse")
     val pulse by infinite.animateFloat(
         initialValue = 0.94f, targetValue = 1.06f,
@@ -675,12 +690,45 @@ private fun DoneStep(onStart: () -> Unit) {
             text = "Flash alerts are ready. Head to the dashboard to customize exactly how and when your flash triggers.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextMuted,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Justify,
             lineHeight = 24.sp
         )
 
-        Spacer(Modifier.height(52.dp))
+        Spacer(Modifier.height(40.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .border(
+                    1.dp,
+                    Amber.copy(alpha = 0.4f),
+                    RoundedCornerShape(14.dp)
+                )
+                .clickable {
+                    onTestFlash()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Test Flash",
+                color = Amber,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(Modifier.height(12.dp))
 
         PrimaryButton(text = "Start Using Flashy", onClick = onStart)
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OnboardingScreenPreview() {
+    OnboardingScreen(
+        context = LocalContext.current,
+        onComplete = {}
+    )
 }

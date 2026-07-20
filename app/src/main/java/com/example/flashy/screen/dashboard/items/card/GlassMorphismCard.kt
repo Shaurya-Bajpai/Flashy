@@ -8,6 +8,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -25,7 +28,24 @@ fun GlassMorphismCard(content: @Composable () -> Unit) {
                         Color.White.copy(alpha = 0.05f)
                     )
                 )
-            ),
+            )
+            .drawWithContent {
+                drawContent()
+                // Inner top-edge highlight — simulates frosted glass light reflection
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0x28FFB300),
+                            Color(0x18FFFFFF),
+                            Color(0x28FFB300),
+                            Color.Transparent
+                        )
+                    ),
+                    topLeft = Offset(0f, 0f),
+                    size = Size(size.width, 1.5.dp.toPx())
+                )
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
